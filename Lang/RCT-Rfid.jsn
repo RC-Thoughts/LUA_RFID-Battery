@@ -1,0 +1,33 @@
+{
+  "default":"en",
+  "en":{
+	"appName":"RFID-Battery",
+	"telLabel":"RFID-Battery",
+	"noPack":"RFID Not Used",
+	"telCapacity":"Capacity mAh",
+	"telCapShort":"mAh",
+	"telCycles":"Cycles",
+	"telCycShort":"Cyc.",
+	"labelCommon":"Common Settings",
+	"labelAlarm":"Alarm Settings Capacity",
+	"labelAlarmVolt":"Alarm Settings Voltage",
+	"sensorID":"Select RFID ID",
+	"modName":"Model name",
+	"labelBatt":"Battery Settings",
+	"battName":"Battery name",
+	"battIDnum":"Battery RFID ID",
+	"battCellNum":"Battery Cell Count",
+	"sensorMah":"mAh Sensor",
+	"sensorVolt":"Voltage Sensor",
+	"AlmVal":"Alarm Value (%)",
+	"AlmValVolt":"Cell Volt Low Limit (V)",
+	"selAudio":"Audiofile",
+	"rptAlm":"Repeat Voice (3x)",
+	"logWrite":"Batterylog Ok!",
+	"lowFlightpack":"Low Flightbattery Voltage!",
+	"loading":"Loading RFID-Battery...",
+	"spacer":" -----------------------------------------------------------------------------------------------",
+	"pos":"Yes",
+	"neg":"No"
+  }
+}
