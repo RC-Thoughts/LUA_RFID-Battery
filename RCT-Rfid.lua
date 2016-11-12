@@ -132,6 +132,7 @@ end
 -- Store settings when changed by user
 local function battName1Changed(value)
 	battName1=value
+	battName1 = battName1:gsub("[^%w ]", "")
 	table.remove (battNames, 1)
 	table.insert (battNames, 1, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -140,6 +141,7 @@ end
 
 local function battName2Changed(value)
 	battName2=value
+	battName = battName2:gsub("[^%w ]", "")
 	table.remove (battNames, 2)
 	table.insert (battNames, 2, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -148,6 +150,7 @@ end
 
 local function battName3Changed(value)
 	battName3=value
+	battName3 = battName3:gsub("[^%w ]", "")
 	table.remove (battNames, 3)
 	table.insert (battNames, 3, value)
 	system.pSave("battNames",{battName1,battName2,value,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -156,6 +159,7 @@ end
 
 local function battName4Changed(value)
 	battName4=value
+	battName4 = battName4:gsub("[^%w ]", "")
 	table.remove (battNames, 4)
 	table.insert (battNames, 4, value)
 	system.pSave("battNames",{battName1,battName2,value,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -164,6 +168,7 @@ end
 
 local function battName5Changed(value)
 	battName5=value
+	battName5 = battName5:gsub("[^%w ]", "")
 	table.remove (battNames, 5)
 	table.insert (battNames, 5, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -172,6 +177,7 @@ end
 
 local function battName6Changed(value)
 	battName6=value
+	battName6 = battName6:gsub("[^%w ]", "")
 	table.remove (battNames, 6)
 	table.insert (battNames, 6, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -180,6 +186,7 @@ end
 
 local function battName7Changed(value)
 	battName7=value
+	battName7 = battName7:gsub("[^%w ]", "")
 	table.remove (battNames, 7)
 	table.insert (battNames, 7, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -188,6 +195,7 @@ end
 
 local function battName8Changed(value)
 	battName8=value
+	battName8 = battName8:gsub("[^%w ]", "")
 	table.remove (battNames, 8)
 	table.insert (battNames, 8, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -196,6 +204,7 @@ end
 
 local function battName9Changed(value)
 	battName9=value
+	battName9 = battName9:gsub("[^%w ]", "")
 	table.remove (battNames, 9)
 	table.insert (battNames, 9, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -204,6 +213,7 @@ end
 
 local function battName10Changed(value)
 	battName10=value
+	battName10 = battName10:gsub("[^%w ]", "")
 	table.remove (battNames, 10)
 	table.insert (battNames, 10, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
@@ -212,6 +222,7 @@ end
 
 local function battName11Changed(value)
 	battName11=value
+	battName11 = battName11:gsub("[^%w ]", "")
 	table.remove (battNames, 11)
 	table.insert (battNames, 11, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
@@ -220,6 +231,7 @@ end
 
 local function battName12Changed(value)
 	battName12=value
+	battName12 = battName12:gsub("[^%w ]", "")
 	table.remove (battNames, 12)
 	table.insert (battNames, 12, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
@@ -228,6 +240,7 @@ end
 
 local function battName13Changed(value)
 	battName13=value
+	battName13 = battName13:gsub("[^%w ]", "")
 	table.remove (battNames, 13)
 	table.insert (battNames, 13, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
@@ -236,6 +249,7 @@ end
 
 local function battName14Changed(value)
 	battName14=value
+	battName14 = battName14:gsub("[^%w ]", "")
 	table.remove (battNames, 14)
 	table.insert (battNames, 14, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
@@ -244,6 +258,7 @@ end
 
 local function battName15Changed(value)
 	battName15=value
+	battName15 = battName15:gsub("[^%w ]", "")
 	table.remove (battNames, 15)
 	table.insert (battNames, 15, value)
 	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
