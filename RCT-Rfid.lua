@@ -19,8 +19,8 @@ local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm
 local capaAlarm, capaAlarmTr, alarmVoice, vPlayed
-local tagValid, tVoltStrRFID, tCurVoltRFID, noLog = 0,0,0,0
-local rfidTrig, battDspCapa, battDspCount, redAlert = 0,0,0,0
+local tagValid, tVoltStrRFID, tCurVoltRFID, tagCycle = 0,0,0,0
+local rfidTrig, battDspCapa, battDspCount, redAlert, noLog = 0,0,0,0,0
 local tSetAlm, tSetAlmVolt, mahLog, rfidRun, tagCellsDsp = 0,0,0,0,0
 local battDspName, battLog, percVal = "-", "-", "-"
 local battName1, battName2, battName3, battName4, battName5
@@ -659,7 +659,7 @@ local function initForm(subform)
 				form.addRow(2)
 				form.addLabel({label=string.format("%s 9",trans8.battName),width=140})
 				form.addTextbox(battName9,18,battName9Changed,{width=167})
-
+				
 				form.addRow(2)
 				form.addLabel({label=trans8.battIDnum})
 				form.addIntbox(battId9,0,10000,0,0,1,battId9Changed)
@@ -813,8 +813,12 @@ local function loop()
 			tagCapa = tagCapa.value
 			tagCount = tagCount.value
 			tagCells = tagCells.value
+			tagCellsDsp = tagCells
 			if (rfidTrig == 0) then
 				rfidTrig = (rfidTime + 30)
+				tagCycle = 0
+				elseif (tagCycle < tagCount) then
+				tagCycle = 1
 			end
 			if (tagID == battId1) then
 				battDspName = battName1
@@ -987,7 +991,8 @@ local function loop()
 		end
 		-- Do cleanup and write log after cycle is finished
 		-- No log if empty battery at start
-		if ((rfidRun == 0) and (mahLog == 1) and (rfidTime > rfidTrig) and (rfidTrig ~= 0)) then
+		-- Write log only if RFID reports added cycle
+		if ((rfidRun == 0) and (mahLog == 1) and (rfidTime > rfidTrig) and (rfidTrig ~= 0) and (tagCycle == 1)) then
 			if(noBattLog == 1) then
 				noBattLog = 0
 				else
@@ -998,6 +1003,7 @@ local function loop()
 			tVoltStrRFID = 0
 			tCurVoltRFID = 0
 			tagCellsDsp = 0
+			tagCountOrg = 0
 			battLog = "-"
 		end
 	end
@@ -1062,6 +1068,6 @@ local function init()
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.0"
+rfidVersion = "1.1"
 setLanguage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}
