@@ -288,10 +288,10 @@ void setup()
 	uCells = 0;
  }
 
-int block=2;	//this is the block number we will write into and then read. Do not write into 'sector trailer' block, since this can make the block unusable.
+int blockJeti=4;	//this is the block number we will write into and then read. Do not write into 'sector trailer' block, since this can make the block unusable.
 
 byte blockcontent[16] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};	//all zeros. This can be used to delete a block.
-byte readbackblock[18];	//This array is used for reading out a block. The MIFARE_Read method requires a buffer that is at least 18 bytes to hold the 16 bytes of a block.
+byte readJetiBlock[18];	//This array is used for reading out a block. The MIFARE_Read method requires a buffer that is at least 18 bytes to hold the 16 bytes of a block.
 
 int header = 0;
 int lastbtn = 240;
@@ -331,13 +331,13 @@ void loop()
 		//} Uid;
 
 		Serial.println("card selected");
-		readBlock(block, readbackblock);	//read the block back
+		readBlock(blockJeti, readJetiBlock);	//read the block back
 
 		//all the items are shorts.. so two bytes. Just read each byte back and construct a short
-		uBatteryID = ((readbackblock[0] & 0xff) << 8) | readbackblock[1];
-		uCapacity = ((readbackblock[2] & 0xff) << 8) | readbackblock[3];
-		uCycles = ((readbackblock[4] & 0xff) << 8) | readbackblock[5];
-		uCells = ((readbackblock[6] & 0xff) << 8) | readbackblock[7];
+		uBatteryID = ((readJetiBlock[0] & 0xff) << 8) | readJetiBlock[1];
+		uCapacity = ((readJetiBlock[2] & 0xff) << 8) | readJetiBlock[3];
+		uCycles = ((readJetiBlock[4] & 0xff) << 8) | readJetiBlock[5];
+		uCells = ((readJetiBlock[6] & 0xff) << 8) | readJetiBlock[7];
 		Serial.print("ID:"); Serial.println(uBatteryID);
 		Serial.print("Capacity:");Serial.println(uCapacity);
 		Serial.print("Cycles:");Serial.println(uCycles);
@@ -365,7 +365,7 @@ void loop()
     low  = (byte)uCells;
     blockcontent[6] = high; blockcontent[7]=low;
 
-		writeBlock(block, blockcontent);	//the blockcontent array is written into the card block
+		writeBlock(blockJeti, blockcontent);	//the blockcontent array is written into the card block
   }
 	//If we have read a card then increase the loop count only if we have looped less than the number of times to trigger an increase in cycle count 
 	if ((uLoopCount < 61)&& bReadCard) {
