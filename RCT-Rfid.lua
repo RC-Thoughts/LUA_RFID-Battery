@@ -19,9 +19,9 @@ local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm
 local capaAlarm, capaAlarmTr, alarmVoice, vPlayed
-local tagValid, tVoltStrRFID, tCurVoltRFID, tagCycle = 0,0,0,0
-local rfidTrig, battDspCapa, battDspCount, redAlert, noLog = 0,0,0,0,0
-local tSetAlm, tSetAlmVolt, mahLog, rfidRun, tagCellsDsp = 0,0,0,0,0
+local tagValid, tVoltStrRFID, tCurVoltRFID, rfidRun = 0,0,0,0
+local rfidTrig, battDspCapa, battDspCount, redAlert = 0,0,0,0
+local tSetAlm, tSetAlmVolt, mahLog, tagCellsDsp = 0,0,0,0
 local battDspName, battLog, percVal = "-", "-", "-"
 local battName1, battName2, battName3, battName4, battName5
 local battName6, battName7, battName8, battName9, battName10
@@ -801,7 +801,7 @@ end
 ----------------------------------------------------------------------
 local function loop()
 	-- RFID reading and battery-definition
-	if (rfidSens > 1) then
+	if(rfidSens > 1) then
 		rfidTime = system.getTime()
 		tagID = system.getSensorByID(rfidId, 1)
 		tagCapa = system.getSensorByID(rfidId, 2)
@@ -814,13 +814,15 @@ local function loop()
 			tagCount = tagCount.value
 			tagCells = tagCells.value
 			tagCellsDsp = tagCells
-			if (rfidTrig == 0) then
+			if(rfidTrig == 0) then
 				rfidTrig = (rfidTime + 30)
-				tagCycle = 0
-				elseif (tagCycle < tagCount) then
-				tagCycle = 1
 			end
-			if (tagID == battId1) then
+			if(rfidTrig > 0 and rfidTrig < rfidTime) then
+				noBattLog = 0
+				else 
+				noBattLog = 1
+			end
+			if(tagID == battId1) then
 				battDspName = battName1
 				battLog = battName1
 				elseif (tagID == battId2) then
@@ -953,13 +955,15 @@ local function loop()
 						voltAlarmVal = string.format("%.2f", (voltAlarm/100))
 						tagCellsDbl = string.format("%.2f", (tagCells + 1) * 4.2)
 						if(voltSenValue > tagCellsDbl) then
-							voltLimit = (voltAlarmVal * tagCells * 2)
+							voltLimit = voltAlarmVal * tagCells * 2
 							tagCellsDsp = (tagCells * 2)
 							else
 							voltLimit = tagCells * voltAlarmVal
 							tagCellsDsp = tagCells
 						end
 						voltLimit = string.format("%.2f", voltLimit)
+						voltSenValue = voltSenValue * 100
+						voltLimit = voltLimit * 100
 						if(voltSenValue <= voltLimit) then
 							redAlert = 1
 							noBattLog = 1
@@ -991,8 +995,7 @@ local function loop()
 		end
 		-- Do cleanup and write log after cycle is finished
 		-- No log if empty battery at start
-		-- Write log only if RFID reports added cycle
-		if ((rfidRun == 0) and (mahLog == 1) and (rfidTime > rfidTrig) and (rfidTrig ~= 0) and (tagCycle == 1)) then
+		if (rfidRun == 0 and mahLog == 1) then
 			if(noBattLog == 1) then
 				noBattLog = 0
 				else
@@ -1068,6 +1071,6 @@ local function init()
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.1"
+rfidVersion = "1.2"
 setLanguage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}
