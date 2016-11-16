@@ -94,8 +94,12 @@ local function printBattery()
 		else
 		txtr,txtg,txtb = 255,255,255
 	end
-	if (battDspName == "-") then
-		lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.noPack))/2,3,trans8.noPack,FONT_BOLD)
+	if (battDspName == "-" or battDspName == "E") then
+		if(battDspName == "E") then
+			lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.emptyTag))/2,3,trans8.emptyTag,FONT_BOLD)
+			else
+			lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.noPack))/2,3,trans8.noPack,FONT_BOLD)
+		end
 		lcd.drawText((57 - lcd.getTextWidth(FONT_BIG,"-"))/2,25,"-",FONT_BIG)
 		lcd.drawText((210 - lcd.getTextWidth(FONT_BIG,"-"))/2,25,"-",FONT_BIG)
 		lcd.drawText((210 - lcd.getTextWidth(FONT_MINI,trans8.telCapacity))/2,51,trans8.telCapacity,FONT_MINI)
@@ -870,9 +874,14 @@ local function loop()
 				else
 				battDspName = "-"
 			end
+			if(tagID == 0) then
+				battDspName = "E"
+				noBattLog = 1
+			else
 			battDspCount = tagCount
 			battDspCapa = tagCapa
 			rfidRun = 1
+			end
 			else
 			battDspName = "-"
 			rfidRun = 0
@@ -891,7 +900,7 @@ local function loop()
 						tStrRFID = rfidTime + 5
 						tSetAlm = 1
 						else
-						tCurRFID = system.getTime()
+					tCurRFID = system.getTime()
 					end
 					resRFID = (((tagCapa - mahCapa) * 100) / tagCapa) 
 					if (resRFID < 0) then
@@ -1071,6 +1080,6 @@ local function init()
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.2"
+rfidVersion = "1.3"
 setLanguage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}
