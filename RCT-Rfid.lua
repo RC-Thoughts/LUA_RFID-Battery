@@ -823,7 +823,7 @@ local function loop()
 			end
 			if(rfidTrig > 0 and rfidTrig < rfidTime) then
 				noBattLog = 0
-				else 
+			else 
 				noBattLog = 1
 			end
 			if(tagID == battId1) then
@@ -878,14 +878,14 @@ local function loop()
 				battDspName = "E"
 				noBattLog = 1
 			else
-			battDspCount = tagCount
-			battDspCapa = tagCapa
-			rfidRun = 1
+				battDspCount = tagCount
+				battDspCapa = tagCapa
+				rfidRun = 1
 			end
 			else
-			battDspName = "-"
-			rfidRun = 0
-			tagValid = 0
+				battDspName = "-"
+				rfidRun = 0
+				tagValid = 0
 		end
 		-- Capacity percentage calculation and voice alert config
 		if (mahSens > 1) then
@@ -899,8 +899,8 @@ local function loop()
 						tCurRFID = rfidTime
 						tStrRFID = rfidTime + 5
 						tSetAlm = 1
-						else
-					tCurRFID = system.getTime()
+					else
+						tCurRFID = system.getTime()
 					end
 					resRFID = (((tagCapa - mahCapa) * 100) / tagCapa) 
 					if (resRFID < 0) then
