@@ -1,7 +1,8 @@
 /*
    --------------------------------------------------------
-          Jeti RFID-Battery version 1,0
+          Jeti RFID-Battery version 1.0
    --------------------------------------------------------
+   
     Tero Salminen RC-Thoughts.com 2016 www.rc-thoughts.com
 
     - Improved performance from previous solutions
@@ -472,7 +473,7 @@ void loop()
             current_screen = 4;
           }
           if (current_screen == 5) {
-            wCells--;
+            wCells = (wCells + 10);
             current_screen = 5;
           }
           break;
