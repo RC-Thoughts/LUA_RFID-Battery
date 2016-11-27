@@ -82,7 +82,7 @@ SoftwareSerial JetiSerial(JETI_RX, JETI_TX);
 
 void JetiUartInit()
 {
-  JetiSerial.begin(9800);
+  JetiSerial.begin(9700);
 }
 
 void JetiTransmitByte(unsigned char data, boolean setBit9)
