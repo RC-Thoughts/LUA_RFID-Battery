@@ -6,6 +6,10 @@
 	Logging includes date/time, modelname, batteryname,
 	capacity, used mAh and battery cycle-count.
 	
+	RC-Thoughts Jeti RFID-Sensor and RFID-Battery application
+	is compatible with Revo Bump and does not disturb 
+	Robbe BID usage (Onki's solution) 
+	
 	Logfile is in csv-format for full compatibility.
 	---------------------------------------------------------
 	RFID application is part of RC-Thoughts Jeti Tools.
@@ -823,7 +827,7 @@ local function loop()
 			end
 			if(rfidTrig > 0 and rfidTrig < rfidTime) then
 				noBattLog = 0
-			else 
+				else 
 				noBattLog = 1
 			end
 			if(tagID == battId1) then
@@ -877,15 +881,15 @@ local function loop()
 			if(tagID == 0) then
 				battDspName = "E"
 				noBattLog = 1
-			else
+				else
 				battDspCount = tagCount
 				battDspCapa = tagCapa
 				rfidRun = 1
 			end
 			else
-				battDspName = "-"
-				rfidRun = 0
-				tagValid = 0
+			battDspName = "-"
+			rfidRun = 0
+			tagValid = 0
 		end
 		-- Capacity percentage calculation and voice alert config
 		if (mahSens > 1) then
@@ -899,7 +903,7 @@ local function loop()
 						tCurRFID = rfidTime
 						tStrRFID = rfidTime + 5
 						tSetAlm = 1
-					else
+						else
 						tCurRFID = system.getTime()
 					end
 					resRFID = (((tagCapa - mahCapa) * 100) / tagCapa) 
@@ -1018,6 +1022,17 @@ local function loop()
 			tagCountOrg = 0
 			battLog = "-"
 		end
+		else
+		-- If no tag then reset values
+		mahLog = 0
+		noBattLog = 0
+		rfidTrig = 0
+		rfidTime = 0
+		tVoltStrRFID = 0
+		tCurVoltRFID = 0
+		tagCellsDsp = 0
+		tagCountOrg = 0
+		battLog = "-"
 	end
 end
 ----------------------------------------------------------------------
@@ -1080,6 +1095,6 @@ local function init()
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.3"
+rfidVersion = "1.4"
 setLanguage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}
