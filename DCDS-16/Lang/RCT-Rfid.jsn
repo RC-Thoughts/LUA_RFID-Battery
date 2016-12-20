@@ -1,0 +1,16 @@
+{
+  "default":"en",
+  "en":{
+	"appName":"RFID-Battery",
+	"telLabel":"RFID-Battery",
+	"noPack":"RFID Not Used",
+	"noCurr":"No current!",
+	"emptyTag":"Empty Tag!",
+	"labelCommon":"Common Settings",
+	"sensorID":"Select RFID ID",
+	"sensorMah":"mAh Sensor",
+	"labelAlarm":"Alarm Settings Capacity",
+	"AlmVal":"Alarm Value (%)",
+	"selAudio":"Audiofile"
+  }
+}

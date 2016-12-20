@@ -4,10 +4,11 @@ Jeti LUA application to be used with RFID-reader
 Current info available on https://www.rc-thoughts.com/rfid-battery/
 
 Installation:
-- Copy RCT-Rfid.lua to DC/DS-24 SD-card to /Apps folder
+- Note different directories for 16 and 24!
+- Copy RCT-Rfid.lua to SD-card to /Apps folder
 - If you have no "Lang" folder in /Apps create it
-- Copy Lang/RCT-Perc.jsn to transmitters /Apps/Lang folder
-- Copy BattLog.csv to /Log folder
+- Copy Lang/RCT-Rfid.jsn to transmitters /Apps/Lang folder
+- (24 only!) Copy BattLog.csv to /Log folder
 - Run application in transmitter
 
 Tero from RC-Thoughts 2016
