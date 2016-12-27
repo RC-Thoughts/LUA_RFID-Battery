@@ -1,6 +1,6 @@
 /*
    --------------------------------------------------------
-          Jeti RFID-Battery version 1.5
+          Jeti RFID-Battery version 1.6
    --------------------------------------------------------
 
     Tero Salminen RC-Thoughts.com 2016 www.rc-thoughts.com
@@ -406,6 +406,7 @@ void loop()
     mfrc522.PICC_IsNewCardPresent();
     if (! mfrc522.PICC_IsNewCardPresent()) {
       revo = false;
+      tagValues = false;
       bReadCard = false;
     }
   }
@@ -415,6 +416,7 @@ void loop()
     mfrc522.PICC_IsNewCardPresent();
     if (! mfrc522.PICC_IsNewCardPresent()) {
       rct = false;
+      tagValues = false;
       bReadCard = false;
       uLoopCount = 0;
     }
@@ -441,6 +443,7 @@ void loop()
     // Check if we are using Revo Bump-tag
     if (piccType == MFRC522::PICC_TYPE_MIFARE_UL) {
       rct = false;
+      tagValues = false;
       revo = true;
     }
   }
@@ -689,6 +692,7 @@ void loop()
             if (current_screen == 7) {
               current_screen = 99;
               if (bReadCard && rct) {
+                mfrc522.PICC_ReadCardSerial();
                 unsigned char high = (byte)(wBatteryID >> 8);
                 unsigned char low  = (byte)wBatteryID;
                 blockcontent[0] = high; blockcontent[1] = low;
