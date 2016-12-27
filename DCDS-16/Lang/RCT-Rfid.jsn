@@ -12,5 +12,18 @@
 	"labelAlarm":"Alarm Settings Capacity",
 	"AlmVal":"Alarm Value (%)",
 	"selAudio":"Audiofile"
+  },
+  “it":{
+	"appName":"RFID-Batteria",
+	"telLabel":"RFID-Batteria",
+	"noPack":"RFID Non usato",
+	"noCurr":"No currente!",
+	"emptyTag”:”Tag vuoto!",
+	"labelCommon”:”Impostazioni comuni",
+	"sensorID":"Seleziona RFID ID",
+	"sensorMah”:”Sensore mAh",
+	"labelAlarm”:”Impostazione allarme capacità",
+	"AlmVal”:”Valore allarme (%)",
+	"selAudio":"Audiofile"
   }
-}
+ }

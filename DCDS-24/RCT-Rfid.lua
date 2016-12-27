@@ -11,6 +11,8 @@
 	Robbe BID usage (Onki's solution) 
 	
 	Logfile is in csv-format for full compatibility.
+	
+	Italian translation courtesy from Fabrizio Zaini
 	---------------------------------------------------------
 	RFID application is part of RC-Thoughts Jeti Tools.
 	---------------------------------------------------------
@@ -1095,6 +1097,6 @@ local function init()
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.4"
+rfidVersion = "1.6"
 setLanguage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}
