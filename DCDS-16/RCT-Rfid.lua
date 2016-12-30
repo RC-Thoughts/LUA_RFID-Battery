@@ -8,7 +8,9 @@
 	
 	RC-Thoughts Jeti RFID-Sensor and RFID-Battery application
 	is compatible with Revo Bump and does not disturb 
-	Robbe BID usage (Onki's solution) 
+	Robbe BID usage (Onki's solution)
+	
+	Requires RFID-Sensor with firmware 1.7 or up
 	
 	Italian translation courtesy from Fabrizio Zaini
 	---------------------------------------------------------
@@ -237,6 +239,6 @@ local function init()
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.6"
+rfidVersion = "1.7"
 setLanguage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}	

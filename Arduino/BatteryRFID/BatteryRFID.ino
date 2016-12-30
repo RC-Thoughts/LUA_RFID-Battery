@@ -1,6 +1,6 @@
 /*
    --------------------------------------------------------
-          Jeti RFID-Battery version 1.6
+          Jeti RFID-Battery version 1.7
    --------------------------------------------------------
 
     Tero Salminen RC-Thoughts.com 2016 www.rc-thoughts.com
@@ -11,6 +11,7 @@
     - Compatibility with Jeti R- and REX-receivers improved
     - RFID-tag Writing via Jetibox from transmitter added
     - Accepts change of RFID-tag without power-cycle
+    - Initializes Jeti-serial even without tag used
     - Compatible with DC/DS-14/16/24
     - Compatible with Revo Bump and Robbe BID systems
     - Code housekeeping (Poorly...)
@@ -402,12 +403,18 @@ void process_screens()
 
 void loop()
 {
+  // Take care of user changing tags
   if ( bReadCard && revo ) {
     mfrc522.PICC_IsNewCardPresent();
     if (! mfrc522.PICC_IsNewCardPresent()) {
       revo = false;
       tagValues = false;
       bReadCard = false;
+      uBatteryID = 0;
+      uCapacity = 0;
+      uCycles = 0;
+      uCells = 0;
+      uCcount = 0;
     }
   }
 
@@ -419,178 +426,15 @@ void loop()
       tagValues = false;
       bReadCard = false;
       uLoopCount = 0;
+      uBatteryID = 0;
+      uCapacity = 0;
+      uCycles = 0;
+      uCells = 0;
+      uCcount = 0;
     }
   }
-
-  //
-  if (! bReadCard) {
-    if ( ! mfrc522.PICC_IsNewCardPresent()) {
-      return;
-    }
-
-    if ( ! mfrc522.PICC_ReadCardSerial()) {
-      return;
-    }
-
-    // Determine tag used
-    // Check if we are using RC-Thoughts tag
-    MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
-    if (piccType == MFRC522::PICC_TYPE_MIFARE_1K) {
-      rct = true;
-      revo = false;
-      uLoopCount = 0;
-    }
-    // Check if we are using Revo Bump-tag
-    if (piccType == MFRC522::PICC_TYPE_MIFARE_UL) {
-      rct = false;
-      tagValues = false;
-      revo = true;
-    }
-  }
-
-  // If we are on RC-Thoughts Tag increase cycle-count after some time
-  if ((uLoopCount == 240) && bReadCard && rct) {
-    mfrc522.PICC_ReadCardSerial();
-    Serial.println("Writing out new cycle count");
-    uCycles = uCycles + 1;
-    unsigned char high = (byte)(uBatteryID >> 8);
-    unsigned char low  = (byte)uBatteryID;
-    blockcontent[0] = high; blockcontent[1] = low;
-    high = (byte)(uCapacity >> 8);
-    low  = (byte)uCapacity ;
-    blockcontent[2] = high; blockcontent[3] = low;
-    high = (byte)(uCycles >> 8);
-    low  = (byte)uCycles;
-    blockcontent[4] = high; blockcontent[5] = low;
-    high = (byte)(uCells >> 8);
-    low  = (byte)uCells;
-    blockcontent[6] = high; blockcontent[7] = low;
-    writeBlock(block, blockcontent);
-    high = (byte)(uCcount >> 8);
-    low  = (byte)uCcount;
-    blockcontent[0] = high; blockcontent[1] = low;
-    writeBlock(block2, blockcontent);
-    Serial.println("Battery name: N/A");
-    Serial.print("ID: "); Serial.println(uBatteryID);
-    Serial.print("Capacity: "); Serial.println(uCapacity);
-    Serial.print("Cycles: "); Serial.println(uCycles);
-    Serial.print("Cells: "); Serial.println(uCells);
-    Serial.print("C-Value: "); Serial.println(uCcount);
-  }
-
-  if ((uLoopCount < 241) && bReadCard && rct) {
-    uLoopCount++;
-  }
-
-  // RC-Thoughts Tag Process START
-  if (! bReadCard && rct) {
-    readBlock(block, readbackblock);
-    uBatteryID = ((readbackblock[0] & 0xff) << 8) | readbackblock[1];
-    uCapacity = ((readbackblock[2] & 0xff) << 8) | readbackblock[3];
-    uCycles = ((readbackblock[4] & 0xff) << 8) | readbackblock[5];
-    uCells = ((readbackblock[6] & 0xff) << 8) | readbackblock[7];
-    readBlock(block2, readbackblock);
-    uCcount = ((readbackblock[0] & 0xff) << 8) | readbackblock[1];
-    Serial.println("RC-Thoughts Info");
-    Serial.println("Battery name: N/A");
-    Serial.print("ID: "); Serial.println(uBatteryID);
-    Serial.print("Capacity: "); Serial.println(uCapacity);
-    Serial.print("Cycles: "); Serial.println(uCycles);
-    Serial.print("Cells: "); Serial.println(uCells);
-    Serial.print("C-Value: "); Serial.println(uCcount);
-    bReadCard = true;
-
-    if (! tagValues)
-    {
-      wBatteryID = uBatteryID;
-      wCapacity = uCapacity;
-      wCycles = uCycles;
-      wCells = uCells;
-      wCcount = uCcount;
-    }
-    tagValues = true;
-  }
-  // RC-Thoughts Tag Process END
-
-  // Revo Process START
-  if (! bReadCard && revo) {
-    // RFID-buffer definition
-    byte buffer[18];
-    byte size = sizeof(buffer);
-
-    // Process Revo - Tag Id
-    mfrc522.MIFARE_Read(17, buffer, &size);
-    String id1 = String(buffer[4], HEX);
-    String id2 = String(buffer[3], HEX);
-    String ID = String(id1 + id2);
-    char idArray[5];
-    ID.toCharArray(idArray, sizeof(idArray));
-    int Id = atoi(idArray);
-    uBatteryID = Id;
-
-    // Process Revo - Battery name - Not used
-    uName = "";
-    mfrc522.MIFARE_Read(22, buffer, &size);
-    char name1 = char(buffer[2]); uName.concat(name1);
-    char name2 = char(buffer[3]); uName.concat(name2);
-    char name3 = char(buffer[4]); uName.concat(name3);
-    char name4 = char(buffer[5]); uName.concat(name4);
-    char name5 = char(buffer[6]); uName.concat(name5);
-    char name6 = char(buffer[7]); uName.concat(name6);
-    char name7 = char(buffer[8]); uName.concat(name7);
-    char name8 = char(buffer[9]); uName.concat(name8);
-    char name9 = char(buffer[10]); uName.concat(name9);
-    char name10 = char(buffer[11]); uName.concat(name10);
-    mfrc522.MIFARE_Read(25, buffer, &size);
-    char name11 = char(buffer[0]); uName.concat(name11);
-    char name12 = char(buffer[1]); uName.concat(name12);
-    char name13 = char(buffer[2]); uName.concat(name13);
-    char name14 = char(buffer[3]); uName.concat(name14);
-    char name15 = char(buffer[4]); uName.concat(name15);
-    char name16 = char(buffer[5]); uName.concat(name16);
-    uName.concat(" ");
-    mfrc522.MIFARE_Read(20, buffer, &size);
-    uCcount = ((buffer[3] & 0xff) << 8) | buffer[2];
-    uName.concat(uCcount); uName.concat("C");
-
-    // Process Revo - Capacity and Cells
-    mfrc522.MIFARE_Read(21, buffer, &size);
-    uCapacity = ((buffer[3] & 0xff) << 8) | buffer[2];
-    uCells = buffer[5];
-
-    // Process Revo pack-count for correct cell-count - Not used
-    mfrc522.MIFARE_Read(27, buffer, &size);
-    uPack = buffer[2];
-    if (uPack == 1) {
-      uCells = uCells * 2;
-    }
-    if (uPack == 2) {
-      uCells = uCells * 3;
-    }
-    if (uPack == 3) {
-      uCells = uCells * 4;
-    }
-    if (uPack == 4) {
-      uCells = uCells * 5;
-    }
-    if (uPack == 5) {
-      uCells = uCells * 6;
-    }
-
-    // Process Revo - Cycles
-    mfrc522.MIFARE_Read(16, buffer, &size);
-    uCycles = ((buffer[2] & 0xff) << 8) | buffer[1];
-    Serial.println("Revo-Info");;
-    Serial.print("Battery name: "); Serial.println(uName);
-    Serial.print("ID: "); Serial.println(uBatteryID);
-    Serial.print("Capacity: "); Serial.println(uCapacity);
-    Serial.print("Cycles: "); Serial.println(uCycles);
-    Serial.print("Cells: "); Serial.println(uCells);
-    Serial.print("C-Value: "); Serial.println(uCcount);
-    bReadCard = true;
-  }
-  // Revo Process END
-
+  
+  // Run Jeti-serial
   unsigned long time = millis();
   SendFrame();
   time = millis();
@@ -781,4 +625,173 @@ void loop()
   else
     wait = wait - milli;
   pinMode(JETI_TX, OUTPUT);
+  
+  // Check for tags
+  if (! bReadCard) {
+    if ( ! mfrc522.PICC_IsNewCardPresent()) {
+      return;
+    }
+
+    if ( ! mfrc522.PICC_ReadCardSerial()) {
+      return;
+    }
+
+    // Determine tag used
+    // Check if we are using RC-Thoughts tag
+    MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    if (piccType == MFRC522::PICC_TYPE_MIFARE_1K) {
+      rct = true;
+      revo = false;
+      uLoopCount = 0;
+    }
+    // Check if we are using Revo Bump-tag
+    if (piccType == MFRC522::PICC_TYPE_MIFARE_UL) {
+      rct = false;
+      tagValues = false;
+      revo = true;
+    }
+  }
+
+  // If we are on RC-Thoughts Tag increase cycle-count after some time
+  if ((uLoopCount == 240) && bReadCard && rct) {
+    mfrc522.PICC_ReadCardSerial();
+    Serial.println("Writing out new cycle count");
+    uCycles = uCycles + 1;
+    unsigned char high = (byte)(uBatteryID >> 8);
+    unsigned char low  = (byte)uBatteryID;
+    blockcontent[0] = high; blockcontent[1] = low;
+    high = (byte)(uCapacity >> 8);
+    low  = (byte)uCapacity ;
+    blockcontent[2] = high; blockcontent[3] = low;
+    high = (byte)(uCycles >> 8);
+    low  = (byte)uCycles;
+    blockcontent[4] = high; blockcontent[5] = low;
+    high = (byte)(uCells >> 8);
+    low  = (byte)uCells;
+    blockcontent[6] = high; blockcontent[7] = low;
+    writeBlock(block, blockcontent);
+    high = (byte)(uCcount >> 8);
+    low  = (byte)uCcount;
+    blockcontent[0] = high; blockcontent[1] = low;
+    writeBlock(block2, blockcontent);
+    Serial.println("Battery name: N/A");
+    Serial.print("ID: "); Serial.println(uBatteryID);
+    Serial.print("Capacity: "); Serial.println(uCapacity);
+    Serial.print("Cycles: "); Serial.println(uCycles);
+    Serial.print("Cells: "); Serial.println(uCells);
+    Serial.print("C-Value: "); Serial.println(uCcount);
+  }
+
+  if ((uLoopCount < 241) && bReadCard && rct) {
+    uLoopCount++;
+  }
+
+  // RC-Thoughts Tag Process START
+  if (! bReadCard && rct) {
+    readBlock(block, readbackblock);
+    uBatteryID = ((readbackblock[0] & 0xff) << 8) | readbackblock[1];
+    uCapacity = ((readbackblock[2] & 0xff) << 8) | readbackblock[3];
+    uCycles = ((readbackblock[4] & 0xff) << 8) | readbackblock[5];
+    uCells = ((readbackblock[6] & 0xff) << 8) | readbackblock[7];
+    readBlock(block2, readbackblock);
+    uCcount = ((readbackblock[0] & 0xff) << 8) | readbackblock[1];
+    Serial.println("RC-Thoughts Info");
+    Serial.println("Battery name: N/A");
+    Serial.print("ID: "); Serial.println(uBatteryID);
+    Serial.print("Capacity: "); Serial.println(uCapacity);
+    Serial.print("Cycles: "); Serial.println(uCycles);
+    Serial.print("Cells: "); Serial.println(uCells);
+    Serial.print("C-Value: "); Serial.println(uCcount);
+    bReadCard = true;
+
+    if (! tagValues)
+    {
+      wBatteryID = uBatteryID;
+      wCapacity = uCapacity;
+      wCycles = uCycles;
+      wCells = uCells;
+      wCcount = uCcount;
+    }
+    tagValues = true;
+  }
+  // RC-Thoughts Tag Process END
+
+  // Revo Process START
+  if (! bReadCard && revo) {
+    // RFID-buffer definition
+    byte buffer[18];
+    byte size = sizeof(buffer);
+
+    // Process Revo - Tag Id
+    mfrc522.MIFARE_Read(17, buffer, &size);
+    String id1 = String(buffer[4], HEX);
+    String id2 = String(buffer[3], HEX);
+    String ID = String(id1 + id2);
+    char idArray[5];
+    ID.toCharArray(idArray, sizeof(idArray));
+    int Id = atoi(idArray);
+    uBatteryID = Id;
+
+    // Process Revo - Battery name - Not used
+    uName = "";
+    mfrc522.MIFARE_Read(22, buffer, &size);
+    char name1 = char(buffer[2]); uName.concat(name1);
+    char name2 = char(buffer[3]); uName.concat(name2);
+    char name3 = char(buffer[4]); uName.concat(name3);
+    char name4 = char(buffer[5]); uName.concat(name4);
+    char name5 = char(buffer[6]); uName.concat(name5);
+    char name6 = char(buffer[7]); uName.concat(name6);
+    char name7 = char(buffer[8]); uName.concat(name7);
+    char name8 = char(buffer[9]); uName.concat(name8);
+    char name9 = char(buffer[10]); uName.concat(name9);
+    char name10 = char(buffer[11]); uName.concat(name10);
+    mfrc522.MIFARE_Read(25, buffer, &size);
+    char name11 = char(buffer[0]); uName.concat(name11);
+    char name12 = char(buffer[1]); uName.concat(name12);
+    char name13 = char(buffer[2]); uName.concat(name13);
+    char name14 = char(buffer[3]); uName.concat(name14);
+    char name15 = char(buffer[4]); uName.concat(name15);
+    char name16 = char(buffer[5]); uName.concat(name16);
+    uName.concat(" ");
+    mfrc522.MIFARE_Read(20, buffer, &size);
+    uCcount = ((buffer[3] & 0xff) << 8) | buffer[2];
+    uName.concat(uCcount); uName.concat("C");
+
+    // Process Revo - Capacity and Cells
+    mfrc522.MIFARE_Read(21, buffer, &size);
+    uCapacity = ((buffer[3] & 0xff) << 8) | buffer[2];
+    uCells = buffer[5];
+
+    // Process Revo pack-count for correct cell-count - Not used
+    mfrc522.MIFARE_Read(27, buffer, &size);
+    uPack = buffer[2];
+    if (uPack == 1) {
+      uCells = uCells * 2;
+    }
+    if (uPack == 2) {
+      uCells = uCells * 3;
+    }
+    if (uPack == 3) {
+      uCells = uCells * 4;
+    }
+    if (uPack == 4) {
+      uCells = uCells * 5;
+    }
+    if (uPack == 5) {
+      uCells = uCells * 6;
+    }
+
+    // Process Revo - Cycles
+    mfrc522.MIFARE_Read(16, buffer, &size);
+    uCycles = ((buffer[2] & 0xff) << 8) | buffer[1];
+    Serial.println("Revo-Info");;
+    Serial.print("Battery name: "); Serial.println(uName);
+    Serial.print("ID: "); Serial.println(uBatteryID);
+    Serial.print("Capacity: "); Serial.println(uCapacity);
+    Serial.print("Cycles: "); Serial.println(uCycles);
+    Serial.print("Cells: "); Serial.println(uCells);
+    Serial.print("C-Value: "); Serial.println(uCcount);
+    bReadCard = true;
+  }
+  // Revo Process END
 }
