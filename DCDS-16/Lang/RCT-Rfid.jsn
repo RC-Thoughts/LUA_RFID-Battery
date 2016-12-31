@@ -18,12 +18,12 @@
 	"telLabel":"RFID-Batteria",
 	"noPack":"RFID Non usato",
 	"noCurr":"No currente!",
-	"emptyTag”:”Tag vuoto o no!",
-	"labelCommon”:”Impostazioni comuni",
+	"emptyTag":"Tag vuoto o no!",
+	"labelCommon":"Impostazioni comuni",
 	"sensorID":"Seleziona RFID ID",
-	"sensorMah”:”Sensore mAh",
-	"labelAlarm”:”Impostazione allarme capacità",
-	"AlmVal”:”Valore allarme (%)",
+	"sensorMah":"Sensore mAh",
+	"labelAlarm":"Impostazione allarme capacità",
+	"AlmVal":"Valore allarme (%)",
 	"selAudio":"Audiofile"
   }
  }
