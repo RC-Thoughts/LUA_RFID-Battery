@@ -1,6 +1,6 @@
 /*
    --------------------------------------------------------
-          Jeti RFID-Battery version 1.7
+          Jeti RFID-Battery version 1.8
    --------------------------------------------------------
 
     Tero Salminen RC-Thoughts.com 2016 www.rc-thoughts.com
@@ -33,7 +33,7 @@
     Søren Thing Andersen fall of 2013
     Rudy Schlaf  www.makecourse.com
    --------------------------------------------------------
-    Shared under MIT-license by Tero Salminen 2016
+    Shared under MIT-license by Tero Salminen 2017
    --------------------------------------------------------
 */
 
@@ -761,25 +761,6 @@ void loop()
     mfrc522.MIFARE_Read(21, buffer, &size);
     uCapacity = ((buffer[3] & 0xff) << 8) | buffer[2];
     uCells = buffer[5];
-
-    // Process Revo pack-count for correct cell-count - Not used
-    mfrc522.MIFARE_Read(27, buffer, &size);
-    uPack = buffer[2];
-    if (uPack == 1) {
-      uCells = uCells * 2;
-    }
-    if (uPack == 2) {
-      uCells = uCells * 3;
-    }
-    if (uPack == 3) {
-      uCells = uCells * 4;
-    }
-    if (uPack == 4) {
-      uCells = uCells * 5;
-    }
-    if (uPack == 5) {
-      uCells = uCells * 6;
-    }
 
     // Process Revo - Cycles
     mfrc522.MIFARE_Read(16, buffer, &size);
