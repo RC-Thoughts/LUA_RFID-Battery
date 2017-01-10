@@ -45,3 +45,8 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
+SHOP_DONT_UL/BatteryRFID.hex
+SHOP_DONT_UL/BatteryRFID.ino
+SHOP_DONT_UL/functions.ino
+Arduino/BatteryRFID/BatteryRFID.ino.eightanaloginputs.hex
+Arduino/BatteryRFID/BatteryRFID.ino.with_bootloader.eightanaloginputs.hex
