@@ -1,6 +1,6 @@
 /*
    --------------------------------------------------------
-          Jeti RFID-Battery version 1.8
+				Jeti RFID-Sensor v.1.9
    --------------------------------------------------------
 
     Tero Salminen RC-Thoughts.com 2016 www.rc-thoughts.com
@@ -36,6 +36,8 @@
     Shared under MIT-license by Tero Salminen 2017
    --------------------------------------------------------
 */
+
+String sensVersion = "v.1.9";
 
 #include <EEPROM.h>
 #include <SPI.h>
@@ -228,7 +230,12 @@ void setup()
   SPI.begin();
   mfrc522.PCD_Init();
   //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // If you have reading distance of 2cm+ use this NOTE Kills on-touch reading!
+  Serial.print("RC-Thoughts RFID-Sensor "); Serial.println(sensVersion);
+  Serial.println("design by RC-Thoughts");
+  Serial.println("Shared under MIT-license by Tero Salminen");
+  Serial.println("");
   Serial.println("Ready!");
+  Serial.println("Use RFID-tag next to sensor!");
   for (byte i = 0; i < 6; i++) {
     key.keyByte[i] = 0xFF;
   }
