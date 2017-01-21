@@ -11,7 +11,9 @@
 	"sensorMah":"mAh Sensor",
 	"labelAlarm":"Alarm Settings Capacity",
 	"AlmVal":"Alarm Value (%)",
-	"selAudio":"Audiofile"
+	"selAudio":"Audiofile",
+	"annSw":"Announcement Switch",
+	"annCap":"Capacity"
   },
   "it":{
 	"appName":"RFID-Batteria",
@@ -24,6 +26,8 @@
 	"sensorMah":"Sensore mAh",
 	"labelAlarm":"Impostazione allarme capacità",
 	"AlmVal":"Valore allarme (%)",
-	"selAudio":"Audiofile"
+	"selAudio":"Audiofile",
+	"annSw":"Annuncio Interruttore",
+	"annCap":"Capacita"
   }
  }

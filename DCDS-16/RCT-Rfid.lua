@@ -16,14 +16,15 @@
 	---------------------------------------------------------
 	RFID application is part of RC-Thoughts Jeti Tools.
 	---------------------------------------------------------
-	Released under MIT-license by Tero @ RC-Thoughts.com 2016
+	Released under MIT-license by Tero @ RC-Thoughts.com 2017
 	---------------------------------------------------------
 --]]
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens, rfidTime
-local capaAlarm, capaAlarmTr, alarmVoice, vPlayed, tagId, tagCapa
-local tagValid, tSetAlm, percVal = 0,0,"-"
+local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
+local capaAlarm, capaAlarmTr, alarmVoice, vPlayed, tagId
+local rfidTime, annGo, annSw, tagCapa
+local tagValid, tSetAlm, percVal, annTime = 0,0,"-",0
 local sensorLa1list = {"..."}
 local sensorId1list = {"..."}
 local sensorPa1list = {"..."}
@@ -124,6 +125,11 @@ local function sensorMahChanged(value)
 	system.pSave("mahId", mahId)
 	system.pSave("mahParam", mahParam)
 end
+
+local function annSwChanged(value)
+	annSw = value
+	system.pSave("annSw",value)
+end
 ----------------------------------------------------------------------
 -- Draw the main form (Application inteface)
 local function initForm(subform)
@@ -154,6 +160,10 @@ local function initForm(subform)
 	form.addLabel({label=trans8.selAudio})
 	form.addAudioFilebox(alarmVoice,alarmVoiceChanged)
 	
+	form.addRow(2)
+	form.addLabel({label=trans8.annSw,width=220})
+	form.addInputbox(annSw,true,annSwChanged)
+	
 	form.addRow(1)
 	form.addLabel({label="Powered by RC-Thoughts.com - v."..rfidVersion.." ",font=FONT_MINI, alignRight=true})
 	
@@ -166,6 +176,7 @@ local function loop()
 		rfidTime = system.getTime()
 		tagID = system.getSensorByID(rfidId, 1)
 		tagCapa = system.getSensorByID(rfidId, 2)
+		annGo = system.getInputsVal(annSw)
 		if(tagID and tagID.valid) then
 			tagValid = 1
 			tagID = tagID.value
@@ -222,6 +233,10 @@ local function loop()
 		else
 		rfidTime = 0
 	end
+	if(annGo == 1 and percVal ~= "-" and annTime < rfidTime) then
+		system.playNumber(percVal, 0, "%", trans8.annCap)
+		annTime = rfidTime + 3
+	end
 end
 ----------------------------------------------------------------------
 -- Application initialization
@@ -235,10 +250,11 @@ local function init()
 	capaAlarm = system.pLoad("capaAlarm",0)
 	capaAlarmTr = system.pLoad("capaAlarmTr",1)
 	alarmVoice = system.pLoad("alarmVoice","...")
+	annSw = system.pLoad("annSw")
 	system.registerForm(1,MENU_APPS,trans8.appName,initForm,keyPressed)
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.7"
+rfidVersion = "1.8"
 setLanguage()
-return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}	
+return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}

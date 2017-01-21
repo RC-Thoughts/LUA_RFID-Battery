@@ -18,16 +18,16 @@
 	---------------------------------------------------------
 	RFID application is part of RC-Thoughts Jeti Tools.
 	---------------------------------------------------------
-	Released under MIT-license by Tero @ RC-Thoughts.com 2016
+	Released under MIT-license by Tero @ RC-Thoughts.com 2017
 	---------------------------------------------------------
 --]]
 ----------------------------------------------------------------------
 -- Locals for the application
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
-local voltId, voltParam, voltSens, voltAlarm
+local voltId, voltParam, voltSens, voltAlarm, annGo, annSw
 local capaAlarm, capaAlarmTr, alarmVoice, vPlayed
-local tagValid, tVoltStrRFID, tCurVoltRFID, rfidRun = 0,0,0,0
+local tagValid, tVoltStrRFID, tCurVoltRFID, rfidRun, annTime = 0,0,0,0,0
 local rfidTrig, battDspCapa, battDspCount, redAlert = 0,0,0,0
 local tSetAlm, tSetAlmVolt, mahLog, tagCellsDsp = 0,0,0,0
 local battDspName, battLog, percVal = "-", "-", "-"
@@ -475,6 +475,11 @@ local function sensorVoltChanged(value)
 	system.pSave("voltId", voltId)
 	system.pSave("voltParam", voltParam)
 end
+--
+local function annSwChanged(value)
+	annSw = value
+	system.pSave("annSw",value)
+end
 ----------------------------------------------------------------------
 -- Draw the main form (Application inteface)
 local function initForm(subform)
@@ -535,6 +540,10 @@ local function initForm(subform)
 		form.addRow(2)
 		form.addLabel({label=trans8.rptAlm,width=200})
 		form.addSelectbox(rptAlmVoltlist,rptAlmVolt,false,rptAlmVoltChanged)
+		
+		form.addRow(2)
+		form.addLabel({label=trans8.annSw,width=220})
+		form.addInputbox(annSw,true,annSwChanged)
 		
 		form.addRow(1)
 		form.addLabel({label="Powered by RC-Thoughts.com - v."..rfidVersion.." ",font=FONT_MINI, alignRight=true})
@@ -819,6 +828,7 @@ local function loop()
 		tagCapa = system.getSensorByID(rfidId, 2)
 		tagCount = system.getSensorByID(rfidId, 3)
 		tagCells = system.getSensorByID(rfidId, 4)
+		annGo = system.getInputsVal(annSw)
 		if(tagID and tagID.valid) then
 			tagValid = 1
 			tagID = tagID.value
@@ -1038,6 +1048,10 @@ local function loop()
 		tagCountOrg = 0
 		battLog = "-"
 	end
+	if(annGo == 1 and percVal ~= "-" and annTime < rfidTime) then
+		system.playNumber(percVal, 0, "%", trans8.annCap)
+		annTime = rfidTime + 3
+	end
 end
 ----------------------------------------------------------------------
 -- Application initialization
@@ -1059,6 +1073,7 @@ local function init()
 	alarmVoiceVolt = system.pLoad("alarmVoiceVolt","...")
 	rptAlm = system.pLoad("rptAlm", 1)
 	rptAlmVolt = system.pLoad("rptAlmVolt",1)
+	annSw = system.pLoad("annSw")
 	table.insert(rptAlmlist,trans8.neg)
 	table.insert(rptAlmlist,trans8.pos)
 	table.insert(rptAlmVoltlist,trans8.neg)
@@ -1099,6 +1114,6 @@ local function init()
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.7"
+rfidVersion = "1.8"
 setLanguage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}

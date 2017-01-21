@@ -29,7 +29,9 @@
 	"loading":"Loading RFID-Battery...",
 	"spacer":" -----------------------------------------------------------------------------------------------",
 	"pos":"Yes",
-	"neg":"No"
+	"neg":"No",
+	"annSw":"Announcement Switch",
+	"annCap":"Capacity"
   },
   "it":{
 	"appName":"RFID-Batteria",
@@ -60,6 +62,8 @@
 	"loading":"Caricamento RFID-Battery...",
 	"spacer":" -----------------------------------------------------------------------------------------------",
 	"pos":"Sì",
-	"neg":"No"
+	"neg":"No",
+	"annSw":"Annuncio Interruttore",
+	"annCap":"Capacita"
   }
 }
