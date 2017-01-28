@@ -1,6 +1,6 @@
 /*
    --------------------------------------------------------
-				Jeti RFID-Sensor v.2.0
+				Jeti RFID-Sensor v.2.1
    --------------------------------------------------------
 
     Tero Salminen RC-Thoughts.com 2016 www.rc-thoughts.com
@@ -37,7 +37,7 @@
    --------------------------------------------------------
 */
 
-String sensVersion = "v.2.0";
+String sensVersion = "v.2.1";
 
 #include <EEPROM.h>
 #include <SPI.h>
@@ -78,23 +78,23 @@ int uLoopCount = 0;
 
 #define ITEMNAME_1 F("ID")
 #define ITEMTYPE_1 F("")
-#define ITEMVAL_1 &uBatteryID
+#define ITEMVAL_1 (short*)&uBatteryID
 
 #define ITEMNAME_2 F("Capacity")
 #define ITEMTYPE_2 F("mAh")
-#define ITEMVAL_2 &uCapacity
+#define ITEMVAL_2 (unsigned int*)&uCapacity
 
 #define ITEMNAME_3 F("Cycles")
 #define ITEMTYPE_3 F("")
-#define ITEMVAL_3 &uCycles
+#define ITEMVAL_3 (short*)&uCycles
 
 #define ITEMNAME_4 F("Cells")
 #define ITEMTYPE_4 F("")
-#define ITEMVAL_4 &uCells
+#define ITEMVAL_4 (short*)&uCells
 
 #define ITEMNAME_5 F("C-Value")
 #define ITEMTYPE_5 F("")
-#define ITEMVAL_5 &uCcount
+#define ITEMVAL_5 (short*)&uCcount
 
 #define ABOUT_1 F(" RCT Jeti Tools")
 #define ABOUT_2 F("  RFID-Battery")
@@ -229,14 +229,15 @@ void setup()
   Serial.begin(9600);
   SPI.begin();
   mfrc522.PCD_Init();
-  mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_43dB); // If you have reading distance of 2cm+ REMOVE this line NOTE Kills on-touch reading!
-  //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // If you have reading distance of 2cm+ remove // in front of this line NOTE Kills on-touch reading!
+  //mfrc522.PCD_SetAntennaGain(mfrc522.RxGain_max); // If you have reading distance of 2cm+ use this NOTE Kills on-touch reading!
+  Serial.println("");
   Serial.print("RC-Thoughts RFID-Sensor "); Serial.println(sensVersion);
-  Serial.println("design by RC-Thoughts");
-  Serial.println("Shared under MIT-license by Tero Salminen");
+  Serial.println("design by Tero Salminen @ RC-Thoughts 2017");
+  Serial.println("Free and open-source - Released under MIT-license");
   Serial.println("");
   Serial.println("Ready!");
   Serial.println("Use RFID-tag next to sensor!");
+  Serial.println("");
   for (byte i = 0; i < 6; i++) {
     key.keyByte[i] = 0xFF;
   }
@@ -254,7 +255,7 @@ void setup()
   JB.addData(ITEMNAME_4, ITEMTYPE_4);
   JB.addData(ITEMNAME_5, ITEMTYPE_5);
   JB.setValue(1, ITEMVAL_1);
-  JB.setValue(2, ITEMVAL_2);
+  JB.setValueBig(2, ITEMVAL_2);
   JB.setValue(3, ITEMVAL_3);
   JB.setValue(4, ITEMVAL_4);
   JB.setValue(5, ITEMVAL_5);
@@ -646,7 +647,7 @@ void loop()
 
     // Determine tag used
     // Check if we are using RC-Thoughts tag
-    MFRC522::PICC_Type piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
+    byte piccType = mfrc522.PICC_GetType(mfrc522.uid.sak);
     if (piccType == MFRC522::PICC_TYPE_MIFARE_1K) {
       rct = true;
       revo = false;
@@ -688,6 +689,7 @@ void loop()
     Serial.print("Cycles: "); Serial.println(uCycles);
     Serial.print("Cells: "); Serial.println(uCells);
     Serial.print("C-Value: "); Serial.println(uCcount);
+    Serial.println("");
   }
 
   if ((uLoopCount < 241) && bReadCard && rct) {
@@ -710,6 +712,7 @@ void loop()
     Serial.print("Cycles: "); Serial.println(uCycles);
     Serial.print("Cells: "); Serial.println(uCells);
     Serial.print("C-Value: "); Serial.println(uCcount);
+    Serial.println("");
     bReadCard = true;
 
     if (! tagValues)
@@ -780,7 +783,10 @@ void loop()
     Serial.print("Cycles: "); Serial.println(uCycles);
     Serial.print("Cells: "); Serial.println(uCells);
     Serial.print("C-Value: "); Serial.println(uCcount);
+    Serial.println("");
     bReadCard = true;
   }
   // Revo Process END
+  int test = (float*)uCapacity;
+  Serial.print("Capacity: "); Serial.println(test);
 }

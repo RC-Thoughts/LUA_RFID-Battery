@@ -65,5 +65,5 @@ int readBlock(int blockNumber, byte arrayAddress[])
     Serial.println(mfrc522.GetStatusCodeName(status));
     return 4;//return "4" as error message
   }
-Serial.println("block was read");
+//Serial.println("block was read"); // Removed by Tero
 }
