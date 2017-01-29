@@ -1,6 +1,6 @@
 /*
    --------------------------------------------------------
-				Jeti RFID-Sensor v.2.1
+				Jeti RFID-Sensor v.2.2
    --------------------------------------------------------
 
     Tero Salminen RC-Thoughts.com 2016 www.rc-thoughts.com
@@ -37,7 +37,7 @@
    --------------------------------------------------------
 */
 
-String sensVersion = "v.2.1";
+String sensVersion = "v.2.2";
 
 #include <EEPROM.h>
 #include <SPI.h>
@@ -277,8 +277,8 @@ void setup()
   wCells = 0;
 }
 
-int block = 4;
-int block2 = 5;
+int block = 60;
+int block2 = 61;
 byte blockcontent[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 byte readbackblock[18];
 int header = 0;
