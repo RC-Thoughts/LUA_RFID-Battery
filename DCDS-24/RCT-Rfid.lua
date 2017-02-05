@@ -26,7 +26,7 @@
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName, modNameAudio
 local voltId, voltParam, voltSens, voltAlarm, voltThreshold, annGo, annSw
-local thresholdTime, nextPlayTime, vVoltPlayed
+local thresholdTime, nextPlayTime, vVoltPlayed, voltageChecked
 local capaAlarm, capaAlarmTr, alarmVoice, vPlayed
 local tagValid, tVoltStrRFID, tCurVoltRFID, rfidRun, annTime = false,0,0,false,0
 local rfidTrig, battDspCapa, battDspCount, redAlert = 0,0,0,false
@@ -515,7 +515,7 @@ local function initForm(subform)
 		form.addTextbox(modName,18,modNameChanged,{width=167})
 
 		form.addRow(2)
-		form.addLabel({label=trans8.modNameAudio,width=140})
+		form.addLabel({label=trans8.modNameAudio})
 		form.addAudioFilebox(modNameAudio,modNameAudioChanged)
 
 		form.addRow(2)
@@ -1037,6 +1037,7 @@ local function resetVoltageAlarm()
 	vVoltPlayed = false
 	thresholdTime = 0
 	redAlert = false
+	voltageChecked = false
 end
 
 local function checkVoltage()
@@ -1050,7 +1051,7 @@ local function checkVoltage()
 		return nil
 	end
 	local trueVoltThreshold = voltThreshold/100
-	if (voltValue.value <= trueVoltThreshold) then
+	if (voltageChecked and voltValue.value <= trueVoltThreshold) then
 		resetVoltageAlarm()
 	end
 	voltSenValue = tonumber(string.format("%.2f", voltValue.value))
@@ -1069,12 +1070,13 @@ local function checkVoltage()
 	voltSenValue = voltSenValue * 100
 	voltLimit = voltLimit * 100
 	--print("voltLimit = "..voltLimit.." voltSenValue = "..voltSenValue)
-	if (thresholdTime == 0 and voltValue.value > trueVoltThreshold) then
+	if (not voltageChecked and thresholdTime == 0 and voltValue.value > trueVoltThreshold) then
 		thresholdTime = system.getTimeCounter() + 2000 -- 2 second delay to let voltage telemetry settle
-	elseif (thresholdTime > 0 and system.getTimeCounter() > thresholdTime) then
+	elseif (not voltageChecked and thresholdTime > 0 and system.getTimeCounter() > thresholdTime) then
 		if (voltSenValue < voltLimit) then
 			redAlert = true
 			noBattLog = 1
+			voltageChecked = true
 			if(not vVoltPlayed and alarmVoiceVolt ~= "...") then
 				if (rptAlmVolt == 2) then
 					system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
@@ -1089,6 +1091,7 @@ local function checkVoltage()
 				end --alarm repeat check
 			end -- alarm played check
 		else
+			voltageChecked = true
 			vVoltPlayed = false
 			thresholdTime = 0
 		end
@@ -1220,6 +1223,7 @@ local function init()
 	thresholdTime = 0
 	nextPlayTime = 0
 	vVoltPlayed = false
+	voltageChecked = false
 	modNameAudio = system.pLoad("modNameAudio", "...")
 	if (modNameAudio ~= "...") then
 		system.playFile(modNameAudio, AUDIO_IMMEDIATE)
