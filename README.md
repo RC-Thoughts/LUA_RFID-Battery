@@ -7,7 +7,7 @@ Installation:
 - Note different directories for 16 and 24!
 - Copy RCT-Rfid.lua to SD-card to /Apps folder
 - If you have no "Lang" folder in /Apps create it
-- Copy Lang/RCT-Rfid.jsn to transmitters /Apps/Lang folder
+- Copy Lang/RCT-Rfid.json to transmitters /Apps/Lang folder
 - (24 only!) Copy BattLog.csv to /Log folder
 - Run application in transmitter
 
