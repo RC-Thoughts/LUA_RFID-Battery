@@ -55,7 +55,7 @@ end
 ----------------------------------------------------------------------
 -- Read translations
 local function setLanguage()
-    local file = readFile("Apps/Lang/RCT-Rfid.jsn")
+    local file = readFile("Apps/Lang/RCT-Rfid.json")
     local obj = json.decode(file)
     if (obj) then
         local lng = system.getLocale();
