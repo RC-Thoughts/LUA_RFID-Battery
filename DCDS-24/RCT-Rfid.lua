@@ -70,7 +70,7 @@ end
 -- Read translations
 local function setLanguage()	
 	local lng=system.getLocale();
-	local file = readFile("Apps/Lang/RCT-Rfid.jsn")
+	local file = readFile("Apps/Lang/RCT-Rfid.json")
 	local obj = json.decode(file)  
 	if(obj) then
 		trans8 = obj[lng] or obj[obj.default]
