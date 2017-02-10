@@ -269,7 +269,7 @@ local function loop()
     end
     if (annGo == 1 and percVal ~= "-" and annTime < rfidTime) then
         system.playNumber(percVal, 0, "%", trans8.annCap)
-        annTime = rfidTime + 3
+        annTime = rfidTime + 10
     end
 end
 
