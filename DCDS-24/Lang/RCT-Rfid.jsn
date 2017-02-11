@@ -28,8 +28,6 @@
 	"lowFlightpack":"Low Flightbattery Voltage!",
 	"loading":"Loading RFID-Battery...",
 	"spacer":" -----------------------------------------------------------------------------------------------",
-	"pos":"Yes",
-	"neg":"No",
 	"annSw":"Announcement Switch",
 	"annCap":"Capacity"
   },
@@ -61,8 +59,6 @@
 	"lowFlightpack":"Tensione batteria di volo bassa!",
 	"loading":"Caricamento RFID-Battery...",
 	"spacer":" -----------------------------------------------------------------------------------------------",
-	"pos":"Sì",
-	"neg":"No",
 	"annSw":"Annuncio Interruttore",
 	"annCap":"Capacita"
   }

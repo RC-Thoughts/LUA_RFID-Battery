@@ -23,6 +23,7 @@
 --]]
 ----------------------------------------------------------------------
 -- Locals for the application
+local rfidVersion = "1.9"
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm, annGo, annSw
@@ -31,23 +32,11 @@ local tagValid, tVoltStrRFID, tCurVoltRFID, rfidRun, annTime = 0,0,0,0,0
 local rfidTrig, battDspCapa, battDspCount, redAlert = 0,0,0,0
 local tSetAlm, tSetAlmVolt, mahLog, tagCellsDsp = 0,0,0,0
 local battDspName, battLog, percVal = "-", "-", "-"
-local battName1, battName2, battName3, battName4, battName5
-local battName6, battName7, battName8, battName9, battName10
-local battName11, battName12, battName13, battName14, battName15
-local battId1, battId2, battId3, battId4, battId5
-local battId6, battId7, battId8, battId9, battId10
-local battId11, battId12, battId13, battId14, battId15
-local rptAlmlist = {}
-local rptAlmVoltlist = {}
-local sensorLa1list = {"..."}
-local sensorId1list = {"..."}
-local sensorPa1list = {"..."}
-local sensorLa2list = {"..."}
-local sensorId2list = {"..."}
-local sensorPa2list = {"..."}
-local sensorLa3list = {"..."}
-local sensorId3list = {"..."}
-local sensorPa3list = {"..."}
+local rptAlmIndex, rptAlmVoltIndex
+local rptAlm, rptAlmVolt, lowDisp = false, false, false
+local sensorLalist = {"..."}
+local sensorIdlist = {"..."}
+local sensorPalist = {"..."}
 ----------------------------------------------------------------------
 -- Function for translation file-reading
 local function readFile(path) 
@@ -60,11 +49,11 @@ local function readFile(path)
 				lines[#lines+1] = buf
 				else
 				break   
-			end   
-		end 
+            end   
+        end 
 		io.close(f)
 		return table.concat(lines,"") 
-	end
+    end
 end 
 ----------------------------------------------------------------------
 -- Read translations
@@ -74,23 +63,19 @@ local function setLanguage()
 	local obj = json.decode(file)  
 	if(obj) then
 		trans8 = obj[lng] or obj[obj.default]
-	end                     
+    end                     
 end
 ----------------------------------------------------------------------
 -- Read available sensors for user to select
-local sensors = system.getSensors()
-for i,sensor in ipairs(sensors) do
-	if (sensor.label ~= "") then
-		table.insert(sensorLa1list, string.format("%s", sensor.label))
-		table.insert(sensorId1list, string.format("%s", sensor.id))
-		table.insert(sensorPa1list, string.format("%s", sensor.param))
-		table.insert(sensorLa2list, string.format("%s", sensor.label))
-		table.insert(sensorId2list, string.format("%s", sensor.id))
-		table.insert(sensorPa2list, string.format("%s", sensor.param))
-		table.insert(sensorLa3list, string.format("%s", sensor.label))
-		table.insert(sensorId3list, string.format("%s", sensor.id))
-		table.insert(sensorPa3list, string.format("%s", sensor.param))
-	end
+local function readSensors()
+    local sensors = system.getSensors()
+    for i,sensor in ipairs(sensors) do
+        if (sensor.label ~= "") then
+            table.insert(sensorLalist, string.format("%s", sensor.label))
+            table.insert(sensorIdlist, string.format("%s", sensor.id))
+            table.insert(sensorPalist, string.format("%s", sensor.param))
+        end
+    end
 end
 ----------------------------------------------------------------------
 -- Draw the telemetry windows
@@ -101,19 +86,19 @@ local function printBattery()
 		txtr,txtg,txtb = 0,0,0
 		else
 		txtr,txtg,txtb = 255,255,255
-	end
+    end
 	if (battDspName == "-" or battDspName == "E") then
 		if(battDspName == "E") then
 			lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.emptyTag))/2,3,trans8.emptyTag,FONT_BOLD)
 			else
-			lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.noPack))/2,3,trans8.noPack,FONT_BOLD)
-		end
+        lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.noPack))/2,3,trans8.noPack,FONT_BOLD)
+        end
 		lcd.drawText((57 - lcd.getTextWidth(FONT_BIG,"-"))/2,25,"-",FONT_BIG)
 		lcd.drawText((210 - lcd.getTextWidth(FONT_BIG,"-"))/2,25,"-",FONT_BIG)
 		lcd.drawText((210 - lcd.getTextWidth(FONT_MINI,trans8.telCapacity))/2,51,trans8.telCapacity,FONT_MINI)
 		lcd.drawText((57 - lcd.getTextWidth(FONT_MINI,trans8.telCycles))/2,51,trans8.telCycles,FONT_MINI)
 		else
-		if (percVal == "-" or mahId == 0 ) then
+		if (percVal == "-" or mahId == 0) then
 			lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,battDspName))/2,3,battDspName,FONT_BOLD)
 			lcd.drawText((57 - lcd.getTextWidth(FONT_BIG,string.format("%.0f",battDspCount)))/2,25,string.format("%.0f",battDspCount),FONT_BIG)
 			lcd.drawText((210 - lcd.getTextWidth(FONT_BIG,string.format("%.0f",battDspCapa)))/2,25,string.format("%.0f",battDspCapa),FONT_BIG)
@@ -126,274 +111,232 @@ local function printBattery()
 			chgH = (percVal*0.39)-1
 			if(redAlert == 1) then
 				lcd.setColor(240,0,0)
-				percVal = 0
 				else
 				lcd.setColor(0,196,0)
-			end
+            end
 			lcd.drawFilledRectangle(6,chgY,24,chgH)
 			lcd.setColor(txtr,txtg,txtb)
 			lcd.drawText(43,4,battDspName,FONT_MINI)
-			lcd.drawText(144 - lcd.getTextWidth(FONT_MAXI,string.format("%.1f%%",percVal)),15,string.format("%.1f%%",percVal),FONT_MAXI)
+            if (lowDisp) then
+                lcd.drawText(125 - lcd.getTextWidth(FONT_MAXI,"LOW"),12,"LOW",FONT_MAXI)
+            else
+                lcd.drawText(144 - lcd.getTextWidth(FONT_MAXI,string.format("%.1f%%",percVal)),14,string.format("%.1f%%",percVal),FONT_MAXI)
+            end
 			lcd.drawText(41,52,string.format("%.0f %s",battDspCount,trans8.telCycShort),FONT_MINI)
 			lcd.drawText(85,52,string.format("%.0f %s",battDspCapa,trans8.telCapShort),FONT_MINI)
 			lcd.drawText((36 - lcd.getTextWidth(FONT_NORMAL,string.format("%.0f%s",tagCellsDsp,"S")))/2,49,string.format("%.0f%s",tagCellsDsp,"S"),FONT_NORMAL)
-		end
-	end
+        end
+    end
 end
 ----------------------------------------------------------------------
 -- Store settings when changed by user
 local function battName1Changed(value)
-	battName1=value
-	battName1 = battName1:gsub("[^%w ]", "")
 	table.remove (battNames, 1)
-	table.insert (battNames, 1, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 1, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName2Changed(value)
-	battName2=value
-	battName = battName2:gsub("[^%w ]", "")
 	table.remove (battNames, 2)
-	table.insert (battNames, 2, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 2, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName3Changed(value)
-	battName3=value
-	battName3 = battName3:gsub("[^%w ]", "")
 	table.remove (battNames, 3)
-	table.insert (battNames, 3, value)
-	system.pSave("battNames",{battName1,battName2,value,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 3, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName4Changed(value)
-	battName4=value
-	battName4 = battName4:gsub("[^%w ]", "")
 	table.remove (battNames, 4)
-	table.insert (battNames, 4, value)
-	system.pSave("battNames",{battName1,battName2,value,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 4, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName5Changed(value)
-	battName5=value
-	battName5 = battName5:gsub("[^%w ]", "")
 	table.remove (battNames, 5)
-	table.insert (battNames, 5, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 5, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName6Changed(value)
-	battName6=value
-	battName6 = battName6:gsub("[^%w ]", "")
 	table.remove (battNames, 6)
-	table.insert (battNames, 6, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 6, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName7Changed(value)
-	battName7=value
-	battName7 = battName7:gsub("[^%w ]", "")
 	table.remove (battNames, 7)
-	table.insert (battNames, 7, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 7, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName8Changed(value)
-	battName8=value
-	battName8 = battName8:gsub("[^%w ]", "")
 	table.remove (battNames, 8)
-	table.insert (battNames, 8, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 8, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName9Changed(value)
-	battName9=value
-	battName9 = battName9:gsub("[^%w ]", "")
 	table.remove (battNames, 9)
-	table.insert (battNames, 9, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 9, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName10Changed(value)
-	battName10=value
-	battName10 = battName10:gsub("[^%w ]", "")
 	table.remove (battNames, 10)
-	table.insert (battNames, 10, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10})
+	table.insert (battNames, 10, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName11Changed(value)
-	battName11=value
-	battName11 = battName11:gsub("[^%w ]", "")
 	table.remove (battNames, 11)
-	table.insert (battNames, 11, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
+	table.insert (battNames, 11, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName12Changed(value)
-	battName12=value
-	battName12 = battName12:gsub("[^%w ]", "")
 	table.remove (battNames, 12)
-	table.insert (battNames, 12, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
+	table.insert (battNames, 12, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName13Changed(value)
-	battName13=value
-	battName13 = battName13:gsub("[^%w ]", "")
 	table.remove (battNames, 13)
-	table.insert (battNames, 13, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
+	table.insert (battNames, 13, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName14Changed(value)
-	battName14=value
-	battName14 = battName14:gsub("[^%w ]", "")
 	table.remove (battNames, 14)
-	table.insert (battNames, 14, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
+	table.insert (battNames, 14, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battName15Changed(value)
-	battName15=value
-	battName15 = battName15:gsub("[^%w ]", "")
 	table.remove (battNames, 15)
-	table.insert (battNames, 15, value)
-	system.pSave("battNames",{battName1,battName2,battName3,battName4,battName5,battName6,battName7,battName8,battName9,battName10,battName11,battName12,battName13,battName14,battName15})
+	table.insert (battNames, 15, (value:gsub("[^%w ]", "")))
+	system.pSave("battNames", battNames)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 --
 local function battId1Changed(value)
-	battId1 = value
 	table.remove (battIds, 1)
 	table.insert (battIds, 1, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId2Changed(value)
-	battId2 = value
 	table.remove (battIds, 2)
 	table.insert (battIds, 2, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId3Changed(value)
-	battId3 = value
 	table.remove (battIds, 3)
 	table.insert (battIds, 3, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId4Changed(value)
-	battId4 = value
 	table.remove (battIds, 4)
 	table.insert (battIds, 4, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId5Changed(value)
-	battId5 = value
 	table.remove (battIds, 5)
 	table.insert (battIds, 5, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId6Changed(value)
-	battId6 = value
 	table.remove (battIds, 6)
 	table.insert (battIds, 6, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId7Changed(value)
-	battId7 = value
 	table.remove (battIds, 7)
 	table.insert (battIds, 7, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId8Changed(value)
-	battId8 = value
 	table.remove (battIds, 8)
 	table.insert (battIds, 8, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId9Changed(value)
-	battId9 = value
 	table.remove (battIds, 9)
 	table.insert (battIds, 9, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId10Changed(value)
-	battId10 = value
 	table.remove (battIds, 10)
 	table.insert (battIds, 10, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId11Changed(value)
-	battId11 = value
 	table.remove (battIds, 11)
 	table.insert (battIds, 11, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10,battId11,battId12,battId13,battId14,battId15})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId12Changed(value)
-	battId12 = value
 	table.remove (battIds, 12)
 	table.insert (battIds, 12, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10,battId11,battId12,battId13,battId14,battId15})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId13Changed(value)
-	battId13 = value
 	table.remove (battIds, 13)
 	table.insert (battIds, 13, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10,battId11,battId12,battId13,battId14,battId15})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId14Changed(value)
-	battId14 = value
 	table.remove (battIds, 14)
 	table.insert (battIds, 14, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10,battId11,battId12,battId13,battId14,battId15})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 
 local function battId15Changed(value)
-	battId15 = value
 	table.remove (battIds, 15)
 	table.insert (battIds, 15, value)
-	system.pSave("battIds",{battId1,battId2,battId3,battId4,battId5,battId6,battId7,battId8,battId9,battId10,battId11,battId12,battId13,battId14,battId15})
+	system.pSave("battIds",battIds)
 	system.registerTelemetry(1,trans8.telLabel,2,printBattery)
 end
 --
@@ -412,8 +355,8 @@ local function capaAlarmChanged(value)
 end
 
 local function rptAlmChanged(value)
-	rptAlm=value
-	system.pSave("rptAlm",value)
+    rptAlm = not value
+    form.setValue(rptAlmIndex,rptAlm)
 end
 
 local function alarmVoiceChanged(value)
@@ -428,8 +371,8 @@ local function voltAlarmChanged(value)
 end
 
 local function rptAlmVoltChanged(value)
-	rptAlmVolt=value
-	system.pSave("rptAlmVolt",value)
+    rptAlmVolt = not value
+    form.setValue(rptAlmVoltIndex,rptAlmVolt)
 end
 
 local function alarmVoiceVoltChanged(value)
@@ -440,12 +383,12 @@ end
 local function sensorIDChanged(value)
 	rfidSens=value
 	system.pSave("rfidSens",value)
-	rfidId = string.format("%s", sensorId1list[rfidSens])
-	rfidParam = string.format("%s", sensorPa1list[rfidSens])
+	rfidId = string.format("%s", sensorIdlist[rfidSens])
+	rfidParam = string.format("%s", sensorPalist[rfidSens])
 	if (rfidId == "...") then
 		rfidId = 0
 		rfidParam = 0
-	end
+    end
 	system.pSave("rfidId",rfidId)
 	system.pSave("rfidParam",rfidParam)
 end
@@ -453,12 +396,12 @@ end
 local function sensorMahChanged(value)
 	mahSens=value
 	system.pSave("mahSens",value)
-	mahId = string.format("%s", sensorId2list[mahSens])
-	mahParam = string.format("%s", sensorPa2list[mahSens])
+	mahId = string.format("%s", sensorIdlist[mahSens])
+	mahParam = string.format("%s", sensorPalist[mahSens])
 	if (mahId == "...") then
 		mahId = 0
 		mahParam = 0
-	end
+    end
 	system.pSave("mahId", mahId)
 	system.pSave("mahParam", mahParam)
 end
@@ -466,12 +409,12 @@ end
 local function sensorVoltChanged(value)
 	voltSens=value
 	system.pSave("voltSens",value)
-	voltId = string.format("%s", sensorId3list[voltSens])
-	voltParam = string.format("%s", sensorPa3list[voltSens])
+	voltId = string.format("%s", sensorIdlist[voltSens])
+	voltParam = string.format("%s", sensorPalist[voltSens])
 	if (voltId == "...") then
 		voltId = 0
 		voltParam = 0
-	end
+    end
 	system.pSave("voltId", voltId)
 	system.pSave("voltParam", voltParam)
 end
@@ -501,15 +444,15 @@ local function initForm(subform)
 		
 		form.addRow(2)
 		form.addLabel({label=trans8.sensorID})
-		form.addSelectbox(sensorLa1list,rfidSens,true,sensorIDChanged)
+		form.addSelectbox(sensorLalist,rfidSens,true,sensorIDChanged)
 		
 		form.addRow(2)
 		form.addLabel({label=trans8.sensorMah})
-		form.addSelectbox(sensorLa2list,mahSens,true,sensorMahChanged)
+		form.addSelectbox(sensorLalist,mahSens,true,sensorMahChanged)
 		
 		form.addRow(2)
 		form.addLabel({label=trans8.sensorVolt})
-		form.addSelectbox(sensorLa3list,voltSens,true,sensorVoltChanged)
+		form.addSelectbox(sensorLalist,voltSens,true,sensorVoltChanged)
 		
 		form.addRow(1)
 		form.addLabel({label=trans8.labelAlarm,font=FONT_BOLD})
@@ -523,8 +466,9 @@ local function initForm(subform)
 		form.addAudioFilebox(alarmVoice,alarmVoiceChanged)
 		
 		form.addRow(2)
-		form.addLabel({label=trans8.rptAlm,width=200})
-		form.addSelectbox(rptAlmlist,rptAlm,false,rptAlmChanged)
+        form.addLabel({label=trans8.rptAlm,width=275})
+        rptAlmIndex = form.addCheckbox(rptAlm,rptAlmChanged)
+
 		
 		form.addRow(1)
 		form.addLabel({label=trans8.labelAlarmVolt,font=FONT_BOLD})
@@ -538,8 +482,8 @@ local function initForm(subform)
 		form.addAudioFilebox(alarmVoiceVolt,alarmVoiceVoltChanged)
 		
 		form.addRow(2)
-		form.addLabel({label=trans8.rptAlm,width=200})
-		form.addSelectbox(rptAlmVoltlist,rptAlmVolt,false,rptAlmVoltChanged)
+        form.addLabel({label=trans8.rptAlm,width=275})
+        rptAlmVoltIndex = form.addCheckbox(rptAlm,rptAlmVoltChanged)
 		
 		form.addRow(2)
 		form.addLabel({label=trans8.annSw,width=220})
@@ -569,55 +513,55 @@ local function initForm(subform)
 			
 			form.addRow(2)
 			form.addLabel({label=string.format("%s 1",trans8.battName),width=140})
-			form.addTextbox(battName1,18,battName1Changed,{width=167})
+			form.addTextbox(battNames[1],18,battName1Changed,{width=167})
 			
 			form.addRow(2)
 			form.addLabel({label=trans8.battIDnum})
-			form.addIntbox(battId1,0,10000,0,0,1,battId1Changed)
+			form.addIntbox(battIds[1],0,10000,0,0,1,battId1Changed)
 			
 			form.addRow(1)
 			form.addLabel({label=trans8.spacer,font=FONT_MINI, align=center})
 			
 			form.addRow(2)
 			form.addLabel({label=string.format("%s 2",trans8.battName),width=140})
-			form.addTextbox(battName2,18,battName2Changed,{width=167})
+			form.addTextbox(battNames[2],18,battName2Changed,{width=167})
 			
 			form.addRow(2)
 			form.addLabel({label=trans8.battIDnum})
-			form.addIntbox(battId2,0,10000,0,0,1,battId2Changed)
+			form.addIntbox(battIds[2],0,10000,0,0,1,battId2Changed)
 			
 			form.addRow(1)
 			form.addLabel({label=trans8.spacer,font=FONT_MINI})
 			
 			form.addRow(2)
 			form.addLabel({label=string.format("%s 3",trans8.battName),width=140})
-			form.addTextbox(battName3,18,battName3Changed,{width=167})
+			form.addTextbox(battNames[3],18,battName3Changed,{width=167})
 			
 			form.addRow(2)
 			form.addLabel({label=trans8.battIDnum})
-			form.addIntbox(battId3,0,10000,0,0,1,battId3Changed)
+			form.addIntbox(battIds[3],0,10000,0,0,1,battId3Changed)
 			
 			form.addRow(1)
 			form.addLabel({label=trans8.spacer,font=FONT_MINI})
 			
 			form.addRow(2)
 			form.addLabel({label=string.format("%s 4",trans8.battName),width=140})
-			form.addTextbox(battName4,18,battName4Changed,{width=167})
+			form.addTextbox(battNames[4],18,battName4Changed,{width=167})
 			
 			form.addRow(2)
 			form.addLabel({label=trans8.battIDnum})
-			form.addIntbox(battId4,0,10000,0,0,1,battId4Changed)
+			form.addIntbox(battIds[4],0,10000,0,0,1,battId4Changed)
 			
 			form.addRow(1)
 			form.addLabel({label=trans8.spacer,font=FONT_MINI})
 			
 			form.addRow(2)
 			form.addLabel({label=string.format("%s 5",trans8.battName),width=140})
-			form.addTextbox(battName5,18,battName5Changed,{width=167})
+			form.addTextbox(battNames[5],18,battName5Changed,{width=167})
 			
 			form.addRow(2)
 			form.addLabel({label=trans8.battIDnum})
-			form.addIntbox(battId5,0,10000,0,0,1,battId5Changed)
+			form.addIntbox(battIds[5],0,10000,0,0,1,battId5Changed)
 			
 			form.addRow(1)
 			form.addLabel({label=trans8.spacer,font=FONT_MINI})
@@ -646,55 +590,55 @@ local function initForm(subform)
 				
 				form.addRow(2)
 				form.addLabel({label=string.format("%s 6",trans8.battName),width=140})
-				form.addTextbox(battName6,18,battName6Changed,{width=167})
+				form.addTextbox(battNames[6],18,battName6Changed,{width=167})
 				
 				form.addRow(2)
 				form.addLabel({label=trans8.battIDnum})
-				form.addIntbox(battId6,0,10000,0,0,1,battId6Changed)
+				form.addIntbox(battIds[6],0,10000,0,0,1,battId6Changed)
 				
 				form.addRow(1)
 				form.addLabel({label=trans8.spacer,font=FONT_MINI})
 				
 				form.addRow(2)
 				form.addLabel({label=string.format("%s 7",trans8.battName),width=140})
-				form.addTextbox(battName7,18,battName7Changed,{width=167})
+				form.addTextbox(battNames[7],18,battName7Changed,{width=167})
 				
 				form.addRow(2)
 				form.addLabel({label=trans8.battIDnum})
-				form.addIntbox(battId7,0,10000,0,0,1,battId7Changed)
+				form.addIntbox(battIds[7],0,10000,0,0,1,battId7Changed)
 				
 				form.addRow(1)
 				form.addLabel({label=trans8.spacer,font=FONT_MINI})
 				
 				form.addRow(2)
 				form.addLabel({label=string.format("%s 8",trans8.battName),width=140})
-				form.addTextbox(battName8,18,battName8Changed,{width=167})
+				form.addTextbox(battNames[8],18,battName8Changed,{width=167})
 				
 				form.addRow(2)
 				form.addLabel({label=trans8.battIDnum})
-				form.addIntbox(battId8,0,10000,0,0,1,battId8Changed)
+				form.addIntbox(battIds[8],0,10000,0,0,1,battId8Changed)
 				
 				form.addRow(1)
 				form.addLabel({label=trans8.spacer,font=FONT_MINI})
 				
 				form.addRow(2)
 				form.addLabel({label=string.format("%s 9",trans8.battName),width=140})
-				form.addTextbox(battName9,18,battName9Changed,{width=167})
+				form.addTextbox(battNames[9],18,battName9Changed,{width=167})
 				
 				form.addRow(2)
 				form.addLabel({label=trans8.battIDnum})
-				form.addIntbox(battId9,0,10000,0,0,1,battId9Changed)
+				form.addIntbox(battIds[9],0,10000,0,0,1,battId9Changed)
 				
 				form.addRow(1)
 				form.addLabel({label=trans8.spacer,font=FONT_MINI})
 				
 				form.addRow(2)
 				form.addLabel({label=string.format("%s 10",trans8.battName),width=140})
-				form.addTextbox(battName10,18,battName10Changed,{width=167})
+				form.addTextbox(battNames[10],18,battName10Changed,{width=167})
 				
 				form.addRow(2)
 				form.addLabel({label=trans8.battIDnum})
-				form.addIntbox(battId10,0,10000,0,0,1,battId10Changed)
+				form.addIntbox(battIds[10],0,10000,0,0,1,battId10Changed)
 				
 				form.addRow(1)
 				form.addLabel({label=trans8.spacer,font=FONT_MINI})
@@ -723,55 +667,55 @@ local function initForm(subform)
 					
 					form.addRow(2)
 					form.addLabel({label=string.format("%s 11",trans8.battName),width=140})
-					form.addTextbox(battName11,18,battName11Changed,{width=167})
+					form.addTextbox(battNames[11],18,battName11Changed,{width=167})
 					
 					form.addRow(2)
 					form.addLabel({label=trans8.battIDnum})
-					form.addIntbox(battId11,0,10000,0,0,1,battId11Changed)
+					form.addIntbox(battIds[11],0,10000,0,0,1,battId11Changed)
 					
 					form.addRow(1)
 					form.addLabel({label=trans8.spacer,font=FONT_MINI})
 					
 					form.addRow(2)
 					form.addLabel({label=string.format("%s 12",trans8.battName),width=140})
-					form.addTextbox(battName12,18,battName12Changed,{width=167})
+					form.addTextbox(battNames[12],18,battName12Changed,{width=167})
 					
 					form.addRow(2)
 					form.addLabel({label=trans8.battIDnum})
-					form.addIntbox(battId12,0,10000,0,0,1,battId12Changed)
+					form.addIntbox(battIds[12],0,10000,0,0,1,battId12Changed)
 					
 					form.addRow(1)
 					form.addLabel({label=trans8.spacer,font=FONT_MINI})
 					
 					form.addRow(2)
 					form.addLabel({label=string.format("%s 13",trans8.battName),width=140})
-					form.addTextbox(battName13,18,battName13Changed,{width=167})
+					form.addTextbox(battNames[13],18,battName13Changed,{width=167})
 					
 					form.addRow(2)
 					form.addLabel({label=trans8.battIDnum})
-					form.addIntbox(battId13,0,10000,0,0,1,battId13Changed)
+					form.addIntbox(battIds[13],0,10000,0,0,1,battId13Changed)
 					
 					form.addRow(1)
 					form.addLabel({label=trans8.spacer,font=FONT_MINI})
 					
 					form.addRow(2)
 					form.addLabel({label=string.format("%s 14",trans8.battName),width=140})
-					form.addTextbox(battName14,18,battName14Changed,{width=167})
+					form.addTextbox(battNames[14],18,battName14Changed,{width=167})
 					
 					form.addRow(2)
 					form.addLabel({label=trans8.battIDnum})
-					form.addIntbox(battId14,0,10000,0,0,1,battId14Changed)
+					form.addIntbox(battIds[14],0,10000,0,0,1,battId14Changed)
 					
 					form.addRow(1)
 					form.addLabel({label=trans8.spacer,font=FONT_MINI})
 					
 					form.addRow(2)
 					form.addLabel({label=string.format("%s 15",trans8.battName),width=140})
-					form.addTextbox(battName15,18,battName15Changed,{width=167})
+					form.addTextbox(battNames[15],18,battName15Changed,{width=167})
 					
 					form.addRow(2)
 					form.addLabel({label=trans8.battIDnum})
-					form.addIntbox(battId15,0,10000,0,0,1,battId15Changed)
+					form.addIntbox(battIds[15],0,10000,0,0,1,battId15Changed)
 					
 					form.addRow(1)
 					form.addLabel({label=trans8.spacer,font=FONT_MINI})
@@ -781,26 +725,26 @@ local function initForm(subform)
 					
 					form.setFocusedRow (1)
 					formID = 4
-				end
-			end
-		end
-	end
+                end
+            end
+        end
+    end
 end
 ----------------------------------------------------------------------
 -- Re-init correct form if navigation buttons are pressed
 local function keyPressed(key)
 	if(key == KEY_1) then
 		form.reinit(1)
-	end
+    end
 	if(key == KEY_2) then
 		form.reinit(2)
-	end
+    end
 	if(key == KEY_3) then
 		form.reinit(3)
-	end
+    end
 	if(key == KEY_4) then
 		form.reinit(4)
-	end
+    end
 end
 ----------------------------------------------------------------------
 local function writeLog()
@@ -816,7 +760,7 @@ local function writeLog()
 	if(writeLog) then
 		io.write(writeLog, logLine,"\n")
 		io.close(writeLog)
-	end
+    end
 	system.messageBox(trans8.logWrite, 5)
 end
 ----------------------------------------------------------------------
@@ -838,60 +782,27 @@ local function loop()
 			tagCellsDsp = tagCells
 			if(rfidTrig == 0) then
 				rfidTrig = (rfidTime + 30)
-			end
+            end
 			if(rfidTrig > 0 and rfidTrig < rfidTime) then
 				noBattLog = 0
 				else 
 				noBattLog = 1
-			end
-			if(tagID == battId1) then
-				battDspName = battName1
-				battLog = battName1
-				elseif (tagID == battId2) then
-				battDspName = battName2
-				battLog = battName2
-				elseif (tagID == battId3) then
-				battDspName = battName3
-				battLog = battName3
-				elseif (tagID == battId4) then
-				battDspName = battName4
-				battLog = battName4
-				elseif (tagID == battId5) then
-				battDspName = battName5
-				battLog = battName5
-				elseif (tagID == battId6) then
-				battDspName = battName6
-				battLog = battName6
-				elseif (tagID == battId7) then
-				battDspName = battName7
-				battLog = battName7
-				elseif (tagID == battId8) then
-				battDspName = battName8
-				battLog = battName8
-				elseif (tagID == battId9) then
-				battDspName = battName9
-				battLog = battName9
-				elseif (tagID == battId10) then
-				battDspName = battName10
-				battLog = battName10
-				elseif (tagID == battId11) then
-				battDspName = battName11
-				battLog = battName11
-				elseif (tagID == battId12) then
-				battDspName = battName12
-				battLog = battName12
-				elseif (tagID == battId13) then
-				battDspName = battName13
-				battLog = battName13
-				elseif (tagID == battId14) then
-				battDspName = battName14
-				battLog = battName14
-				elseif (tagID == battId15) then
-				battDspName = battName15
-				battLog = battName15
-				else
+            end
+			
+			for i=1,15 do
+				if (tagID == battIds[i]) then
+					found = true
+					battDspName = battNames[i]
+					local temp = battDspName
+					battLog = temp:gsub("[^%w ]", "")
+					break
+                end
+            end
+			
+			if(not found) then
 				battDspName = "-"
-			end
+            end
+			
 			if(tagID == 0) then
 				battDspName = "E"
 				noBattLog = 1
@@ -899,12 +810,12 @@ local function loop()
 				battDspCount = tagCount
 				battDspCapa = tagCapa
 				rfidRun = 1
-			end
+            end
 			else
 			battDspName = "-"
 			rfidRun = 0
 			tagValid = 0
-		end
+        end
 		-- Capacity percentage calculation and voice alert config
 		if (mahSens > 1) then
 			mahCapa = system.getSensorByID(mahId, mahParam)
@@ -919,15 +830,15 @@ local function loop()
 						tSetAlm = 1
 						else
 						tCurRFID = system.getTime()
-					end
+                    end
 					resRFID = (((tagCapa - mahCapa) * 100) / tagCapa) 
 					if (resRFID < 0) then
 						resRFID = 0
 						else
 						if (resRFID > 100) then
 							resRFID = 100
-						end
-					end
+                        end
+                    end
 					percVal = string.format("%.1f", resRFID)
 					if(alarm1Tr == 0) then
 						vPlayed = 0
@@ -937,7 +848,7 @@ local function loop()
 							redAlert = 1
 							if(tStrRFID <= tCurRFID and tSetAlm == 1) then
 								if(vPlayed == 0 or vPlayed == nil and alarmVoice ~= "...") then
-									if (rptAlm == 2) then
+									if (rptAlm) then
 										system.playFile(alarmVoice,AUDIO_AUDIO_QUEUE)
 										system.playFile(alarmVoice,AUDIO_AUDIO_QUEUE)
 										system.playFile(alarmVoice,AUDIO_AUDIO_QUEUE)
@@ -945,21 +856,21 @@ local function loop()
 										else
 										system.playFile(alarmVoice,AUDIO_AUDIO_QUEUE)
 										vPlayed = 1
-									end
-								end
-							end
+                                    end
+                                end
+                            end
 							else
 							vPlayed = 0
-						end
-					end
+                        end
+                    end
 					else
 					percVal = "-"
 					vPlayed = 0
 					tSetAlm = 0
 					redAlert = 0
-				end
-			end
-		end
+                end
+            end
+        end
 		-- Low batteryvoltage measurement and voice alert config
 		if (voltSens > 1 and tVoltStrRFID >= tCurVoltRFID) then
 			voltValue = system.getSensorByID(voltId, voltParam)
@@ -972,7 +883,7 @@ local function loop()
 						tSetAlmVolt = 1
 						else
 						tCurVoltRFID = system.getTime()
-					end
+                    end
 					if(voltAlarm == 0) then
 						vVoltPlayed = 0
 						tVoltStrRFID = 0
@@ -987,16 +898,17 @@ local function loop()
 							else
 							voltLimit = tagCells * voltAlarmVal
 							tagCellsDsp = tagCells
-						end
+                        end
 						voltLimit = string.format("%.2f", voltLimit)
 						voltSenValue = voltSenValue * 100
 						voltLimit = voltLimit * 100
 						if(voltSenValue <= voltLimit) then
 							redAlert = 1
 							noBattLog = 1
+                            lowDisp = true
 							if(tVoltStrRFID >= tCurVoltRFID and tSetAlmVolt == 1) then
 								if(vVoltPlayed == 0 or vVoltPlayed == nil and alarmVoiceVolt ~= "...") then
-									if (rptAlmVolt == 2) then
+									if (rptAlmVolt) then
 										system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
 										system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
 										system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
@@ -1006,20 +918,21 @@ local function loop()
 										system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
 										vVoltPlayed = 1
 										system.messageBox(trans8.lowFlightpack, 10)
-									end
-								end
-							end
+                                    end
+                                end
+                            end
 							else
 							vVoltPlayed = 0
-						end
-					end
+                            lowDisp = false
+                        end
+                    end
 					else
 					vVoltPlayed = 0
 					tSetAlmVolt = 0
 					redAlert = 0
-				end
-			end
-		end
+                end
+            end
+        end
 		-- Do cleanup and write log after cycle is finished
 		-- No log if empty battery at start
 		if (rfidRun == 0 and mahLog == 1) then
@@ -1027,7 +940,7 @@ local function loop()
 				noBattLog = 0
 				else
 				writeLog()
-			end
+            end
 			mahLog = 0
 			rfidTrig = 0
 			tVoltStrRFID = 0
@@ -1035,7 +948,8 @@ local function loop()
 			tagCellsDsp = 0
 			tagCountOrg = 0
 			battLog = "-"
-		end
+            lowDisp = false
+        end
 		else
 		-- If no tag then reset values
 		mahLog = 0
@@ -1046,16 +960,18 @@ local function loop()
 		tCurVoltRFID = 0
 		tagCellsDsp = 0
 		tagCountOrg = 0
-		battLog = "-"
-	end
-	if(annGo == 1 and percVal ~= "-" and annTime < rfidTime) then
+        battLog = "-"
+        lowDisp = false
+    end
+    if(annGo == 1 and percVal ~= "-" and annTime < rfidTime) then
 		system.playNumber(percVal, 0, "%", trans8.annCap)
-		annTime = rfidTime + 3
-	end
+		annTime = rfidTime + 10
+    end
 end
 ----------------------------------------------------------------------
 -- Application initialization
 local function init()
+    readSensors()
 	rfidId = system.pLoad("rfidId",0)
 	rfidParam = system.pLoad("rfidParam",0)
 	rfidSens = system.pLoad("rfidSens",0)
@@ -1071,49 +987,14 @@ local function init()
 	capaAlarmTr = system.pLoad("capaAlarmTr",1)
 	alarmVoice = system.pLoad("alarmVoice","...")
 	alarmVoiceVolt = system.pLoad("alarmVoiceVolt","...")
-	rptAlm = system.pLoad("rptAlm", 1)
-	rptAlmVolt = system.pLoad("rptAlmVolt",1)
-	annSw = system.pLoad("annSw")
-	table.insert(rptAlmlist,trans8.neg)
-	table.insert(rptAlmlist,trans8.pos)
-	table.insert(rptAlmVoltlist,trans8.neg)
-	table.insert(rptAlmVoltlist,trans8.pos)
+    annSw = system.pLoad("annSw")
+	rptAlm = system.pLoad("rptAlm",false)
+	rptAlmVolt = system.pLoad("rptAlmVolt",false)
 	battIds = system.pLoad("battIds",{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0})
 	battNames = system.pLoad("battNames",{"","","","","","","","","","","","","","",""})
-	battId1 = battIds[1]
-	battId2 = battIds[2]
-	battId3 = battIds[3]
-	battId4 = battIds[4]
-	battId5 = battIds[5]
-	battId6 = battIds[6]
-	battId7 = battIds[7]
-	battId8 = battIds[8]
-	battId9 = battIds[9]
-	battId10 = battIds[10]
-	battId11 = battIds[11]
-	battId12 = battIds[12]
-	battId13 = battIds[13]
-	battId14 = battIds[14]
-	battId15 = battIds[15]
-	battName1 = battNames[1]
-	battName2 = battNames[2]
-	battName3 = battNames[3]
-	battName4 = battNames[4]
-	battName5 = battNames[5]
-	battName6 = battNames[6]
-	battName7 = battNames[7]
-	battName8 = battNames[8]
-	battName9 = battNames[9]
-	battName10 = battNames[10]
-	battName11 = battNames[11]
-	battName12 = battNames[12]
-	battName13 = battNames[13]
-	battName14 = battNames[14]
-	battName15 = battNames[15]
 	system.registerForm(1,MENU_APPS,trans8.appName,initForm,keyPressed)
 	system.registerTelemetry(1,"RFID-Battery",2,printBattery)
 end
 ----------------------------------------------------------------------
-rfidVersion = "1.8"
 setLanguage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}
