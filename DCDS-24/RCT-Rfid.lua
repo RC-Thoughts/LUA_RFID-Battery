@@ -1,25 +1,25 @@
 --[[
----------------------------------------------------------
-  RFID application reads Arduino + RC522 MIFARE tags from
-  battery and stores information to logfile.
-
-  Logging includes date/time, modelname, batteryname,
-  capacity, used mAh and battery cycle-count.
-
-  RC-Thoughts Jeti RFID-Sensor and RFID-Battery application
-  is compatible with Revo Bump and does not disturb 
-  Robbe BID usage (Onki's solution) 
-
-  Logfile is in csv-format for full compatibility.
-
-  Requires RFID-Sensor with firmware 1.7 or up
-
-  Italian translation courtesy from Fabrizio Zaini
-  ---------------------------------------------------------
-  RFID application is part of RC-Thoughts Jeti Tools.
-  ---------------------------------------------------------
-  Released under MIT-license by Tero @ RC-Thoughts.com 2017
-  ---------------------------------------------------------
+    ---------------------------------------------------------
+    RFID application reads Arduino + RC522 MIFARE tags from
+    battery and stores information to logfile.
+    
+    Logging includes date/time, modelname, batteryname,
+    capacity, used mAh and battery cycle-count.
+    
+    RC-Thoughts Jeti RFID-Sensor and RFID-Battery application
+    is compatible with Revo Bump and does not disturb
+    Robbe BID usage (Onki's solution)
+    
+    Logfile is in csv-format for full compatibility.
+    
+    Requires RFID-Sensor with firmware 1.7 or up
+    
+    Italian translation courtesy from Fabrizio Zaini
+    ---------------------------------------------------------
+    RFID application is part of RC-Thoughts Jeti Tools.
+    ---------------------------------------------------------
+    Released under MIT-license by Tero @ RC-Thoughts.com 2017
+    ---------------------------------------------------------
 --]]
 ----------------------------------------------------------------------
 -- Locals for the application
@@ -39,31 +39,31 @@ local sensorIdlist = {"..."}
 local sensorPalist = {"..."}
 ----------------------------------------------------------------------
 -- Function for translation file-reading
-local function readFile(path) 
+local function readFile(path)
     local f = io.open(path,"r")
     local lines={}
     if(f) then
-        while 1 do 
+        while 1 do
             local buf=io.read(f,512)
-            if(buf ~= "")then 
+            if(buf ~= "")then
                 lines[#lines+1] = buf
                 else
-                break   
-            end   
-        end 
+                break
+            end
+        end
         io.close(f)
-        return table.concat(lines,"") 
+        return table.concat(lines,"")
     end
-end 
+end
 ----------------------------------------------------------------------
 -- Read translations
-local function setLanguage()	
+local function setLanguage()
     local lng=system.getLocale();
     local file = readFile("Apps/Lang/RCT-Rfid.jsn")
-    local obj = json.decode(file)  
+    local obj = json.decode(file)
     if(obj) then
         trans8 = obj[lng] or obj[obj.default]
-    end                     
+    end
 end
 ----------------------------------------------------------------------
 -- Read available sensors for user to select
@@ -82,7 +82,7 @@ end
 local function printBattery()
     local txtr,txtg,txtb
     local bgr,bgg,bgb = lcd.getBgColor()
-    if (bgr+bgg+bgb)/3 >128 then 
+    if (bgr+bgg+bgb)/3 >128 then
         txtr,txtg,txtb = 0,0,0
         else
         txtr,txtg,txtb = 255,255,255
@@ -91,7 +91,7 @@ local function printBattery()
         if(battDspName == "E") then
             lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.emptyTag))/2,3,trans8.emptyTag,FONT_BOLD)
             else
-        lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.noPack))/2,3,trans8.noPack,FONT_BOLD)
+            lcd.drawText((150 - lcd.getTextWidth(FONT_BOLD,trans8.noPack))/2,3,trans8.noPack,FONT_BOLD)
         end
         lcd.drawText((57 - lcd.getTextWidth(FONT_BIG,"-"))/2,25,"-",FONT_BIG)
         lcd.drawText((210 - lcd.getTextWidth(FONT_BIG,"-"))/2,25,"-",FONT_BIG)
@@ -105,7 +105,7 @@ local function printBattery()
             lcd.drawText((210 - lcd.getTextWidth(FONT_MINI,trans8.telCapacity))/2,51,trans8.telCapacity,FONT_MINI)
             lcd.drawText((57 - lcd.getTextWidth(FONT_MINI,trans8.telCycles))/2,51,trans8.telCycles,FONT_MINI)
             else
-            lcd.drawRectangle(5,9,26,41)                                          
+            lcd.drawRectangle(5,9,26,41)
             lcd.drawFilledRectangle(12,6,12,4)
             chgY = (50-(percVal*0.39))
             chgH = (percVal*0.39)-1
@@ -119,7 +119,7 @@ local function printBattery()
             lcd.drawText(43,4,battDspName,FONT_MINI)
             if (lowDisp) then
                 lcd.drawText(125 - lcd.getTextWidth(FONT_MAXI,"LOW"),12,"LOW",FONT_MAXI)
-            else
+                else
                 lcd.drawText(144 - lcd.getTextWidth(FONT_MAXI,string.format("%.1f%%",percVal)),14,string.format("%.1f%%",percVal),FONT_MAXI)
             end
             lcd.drawText(41,52,string.format("%.0f %s",battDspCount,trans8.telCycShort),FONT_MINI)
@@ -433,7 +433,7 @@ local function initForm(subform)
         form.setButton(4,"11-15",ENABLED)
         
         form.addRow(1)
-        form.addLabel({label="---     RC-Thoughts Jeti Tools      ---",font=FONT_BIG})
+        form.addLabel({label="--- RC-Thoughts Jeti Tools ---",font=FONT_BIG})
         
         form.addRow(1)
         form.addLabel({label=trans8.labelCommon,font=FONT_BOLD})
@@ -495,14 +495,14 @@ local function initForm(subform)
         formID = 1
         else
         
-        if(subform == 2) then		
+        if(subform == 2) then
             form.setButton(1,":tools",ENABLED)
             form.setButton(2,"1-5",HIGHLIGHTED)
             form.setButton(3,"6-10",ENABLED)
             form.setButton(4,"11-15",ENABLED)
             
             form.addRow(1)
-            form.addLabel({label="---     RC-Thoughts Jeti Tools      ---",font=FONT_BIG})
+            form.addLabel({label="--- RC-Thoughts Jeti Tools ---",font=FONT_BIG})
             
             form.addRow(1)
             form.addLabel({label=trans8.labelBatt,font=FONT_BOLD})
@@ -572,14 +572,14 @@ local function initForm(subform)
             formID = 2
             else
             
-            if(subform == 3) then		
+            if(subform == 3) then
                 form.setButton(1,":tools",ENABLED)
                 form.setButton(2,"1-5",ENABLED)
                 form.setButton(3,"6-10",HIGHLIGHTED)
                 form.setButton(4,"11-15",ENABLED)
                 
                 form.addRow(1)
-                form.addLabel({label="---     RC-Thoughts Jeti Tools      ---",font=FONT_BIG})
+                form.addLabel({label="--- RC-Thoughts Jeti Tools ---",font=FONT_BIG})
                 
                 form.addRow(1)
                 form.addLabel({label=trans8.labelBatt,font=FONT_BOLD})
@@ -649,14 +649,14 @@ local function initForm(subform)
                 formID = 3
                 else
                 
-                if(subform == 4) then		
+                if(subform == 4) then
                     form.setButton(1,":tools",ENABLED)
                     form.setButton(2,"1-5",ENABLED)
                     form.setButton(3,"6-10",ENABLED)
                     form.setButton(4,"11-15",HIGHLIGHTED)
                     
                     form.addRow(1)
-                    form.addLabel({label="---     RC-Thoughts Jeti Tools      ---",font=FONT_BIG})
+                    form.addLabel({label="--- RC-Thoughts Jeti Tools ---",font=FONT_BIG})
                     
                     form.addRow(1)
                     form.addLabel({label=trans8.labelBatt,font=FONT_BOLD})
@@ -784,7 +784,7 @@ local function loop()
             end
             if(rfidTrig > 0 and rfidTrig < rfidTime) then
                 noBattLog = 0
-                else 
+                else
                 noBattLog = 1
             end
             
