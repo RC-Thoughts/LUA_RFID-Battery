@@ -23,7 +23,7 @@
 --]]
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion = "1.9"
+local rfidVersion = "1.91"
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm, annGo, annSw
@@ -32,7 +32,7 @@ local tagValid, tVoltStrRFID, tCurVoltRFID, rfidRun, annTime = 0,0,0,0,0
 local rfidTrig, battDspCapa, battDspCount, redAlert = 0,0,0,0
 local tSetAlm, tSetAlmVolt, mahLog, tagCellsDsp = 0,0,0,0
 local battDspName, battLog, percVal = "-", "-", "-"
-local rptAlmIndex, rptAlmVoltIndex
+local rptAlmIndex, rptAlmVoltIndex, rptAlmSt, rptAlmVolt
 local rptAlm, rptAlmVolt, lowDisp = false, false, false
 local sensorLalist = {"..."}
 local sensorIdlist = {"..."}
@@ -357,6 +357,11 @@ end
 local function rptAlmChanged(value)
     rptAlm = not value
     form.setValue(rptAlmIndex,rptAlm)
+    if(rptAlm) then
+        system.pSave("rptAlmSt", 1)
+        else
+        system.pSave("rptAlmSt", 0)
+    end
 end
 
 local function alarmVoiceChanged(value)
@@ -373,6 +378,11 @@ end
 local function rptAlmVoltChanged(value)
     rptAlmVolt = not value
     form.setValue(rptAlmVoltIndex,rptAlmVolt)
+    if(rptAlmVolt) then
+        system.pSave("rptAlmVoltSt", 1)
+        else
+        system.pSave("rptAlmVoltSt", 0)
+    end
 end
 
 local function alarmVoiceVoltChanged(value)
@@ -987,8 +997,20 @@ local function init()
     alarmVoice = system.pLoad("alarmVoice","...")
     alarmVoiceVolt = system.pLoad("alarmVoiceVolt","...")
     annSw = system.pLoad("annSw")
-    rptAlm = system.pLoad("rptAlm",false)
-    rptAlmVolt = system.pLoad("rptAlmVolt",false)
+    --rptAlm = system.pLoad("rptAlm",false)
+    rptAlmSt = system.pLoad("rptAlmSt", 0)
+    --rptAlmVolt = system.pLoad("rptAlmVolt",false)
+    rptAlmVoltSt = system.pLoad("rptAlmVoltSt", 0)
+    if(rptAlmSt == 1) then
+        rptAlm = true
+        else
+        rptAlm = false
+    end
+    if(rptAlmVoltSt == 1) then
+        rptAlmVolt = true
+        else
+        rptAlmVolt = false
+    end
     battIds = system.pLoad("battIds",{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0})
     battNames = system.pLoad("battNames",{"","","","","","","","","","","","","","",""})
     system.registerForm(1,MENU_APPS,trans8.appName,initForm,keyPressed)
