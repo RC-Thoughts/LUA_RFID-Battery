@@ -23,7 +23,7 @@
 --]]
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion = "1.91"
+local rfidVersion = "1.92"
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm, annGo, annSw
@@ -945,7 +945,7 @@ local function loop()
         -- Do cleanup and write log after cycle is finished
         -- No log if empty battery at start
         if (rfidRun == 0 and mahLog == 1) then
-            if(noBattLog == 1) then
+            if(noBattLog == 1 or mahCapaLog == 0 or battDspCapa == 0) then
                 noBattLog = 0
                 else
                 writeLog()
