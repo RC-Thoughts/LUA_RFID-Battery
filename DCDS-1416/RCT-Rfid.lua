@@ -20,10 +20,9 @@
 	---------------------------------------------------------
 --]]
 collectgarbage()
-
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion, tCurRFID, tStrRFID = "1.9", 0, 0
+local rfidVersion, tCurRFID, tStrRFID = "2.0", 0, 0
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local capaAlarm, capaAlarmTr, alarmVoice, vPlayed, tagID
 local rfidTime, annGo, annSw, tagCapa, alarm1Tr
@@ -33,36 +32,15 @@ local sensorId1list = { "..." }
 local sensorPa1list = { "..." }
 local trans8
 ----------------------------------------------------------------------
--- Function for translation file-reading
-local function readFile(path)
-    local f = io.open(path, "r")
-    if (f) then
-        local read = io.read
-        local lines = {}
-        while 1 do
-            local buf = read(f, 512)
-            if (buf ~= "") then
-                lines[#lines + 1] = buf
-            else
-                break
-            end
-        end
-        io.close(f)
-        return table.concat(lines, "")
-    end
-end
-
-----------------------------------------------------------------------
 -- Read translations
 local function setLanguage()
-    local file = readFile("Apps/Lang/RCT-Rfid.jsn")
+    local lng=system.getLocale()
+    local file = io.readall("Apps/Lang/RCT-Rfid.jsn")
     local obj = json.decode(file)
-    if (obj) then
-        local lng = system.getLocale();
+    if(obj) then
         trans8 = obj[lng] or obj[obj.default]
     end
 end
-
 ----------------------------------------------------------------------
 -- Read available sensors for user to select
 local function readSensors()
@@ -77,7 +55,6 @@ local function readSensors()
         end
     end
 end
-
 ----------------------------------------------------------------------
 -- Draw the telemetry windows
 local function printBattery()
@@ -100,8 +77,8 @@ local function printBattery()
     else
         drawText((150 - getTextWidth(bold, trans8.noPack)) / 2, 24, trans8.noPack, bold)
     end
+    collectgarbage()
 end
-
 ----------------------------------------------------------------------
 -- Store settings when changed by user
 --
@@ -158,7 +135,6 @@ local function annSwChanged(value)
     annSw = value
     system.pSave("annSw", value)
 end
-
 ----------------------------------------------------------------------
 -- Draw the main form (Application inteface)
 local function initForm()
@@ -271,6 +247,7 @@ local function loop()
         system.playNumber(percVal, 0, "%", trans8.annCap)
         annTime = rfidTime + 10
     end
+    collectgarbage()
 end
 
 ----------------------------------------------------------------------
@@ -287,9 +264,7 @@ local function init()
     capaAlarmTr = pLoad("capaAlarmTr", 1)
     alarmVoice = pLoad("alarmVoice", "...")
     annSw = pLoad("annSw")
-
     readSensors()
-
     system.registerForm(1, MENU_APPS, trans8.appName, initForm, keyPressed)
     system.registerTelemetry(1, "RFID-Battery", 2, printBattery)
     collectgarbage()

@@ -21,9 +21,10 @@
     Released under MIT-license by Tero @ RC-Thoughts.com 2017
     ---------------------------------------------------------
 --]]
+collectgarbage()
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion = "1.92"
+local rfidVersion = "2.0"
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm, annGo, annSw
@@ -38,28 +39,10 @@ local sensorLalist = {"..."}
 local sensorIdlist = {"..."}
 local sensorPalist = {"..."}
 ----------------------------------------------------------------------
--- Function for translation file-reading
-local function readFile(path)
-    local f = io.open(path,"r")
-    local lines={}
-    if(f) then
-        while 1 do
-            local buf=io.read(f,512)
-            if(buf ~= "")then
-                lines[#lines+1] = buf
-                else
-                break
-            end
-        end
-        io.close(f)
-        return table.concat(lines,"")
-    end
-end
-----------------------------------------------------------------------
 -- Read translations
 local function setLanguage()
-    local lng=system.getLocale();
-    local file = readFile("Apps/Lang/RCT-Rfid.jsn")
+    local lng=system.getLocale()
+    local file = io.readall("Apps/Lang/RCT-Rfid.jsn")
     local obj = json.decode(file)
     if(obj) then
         trans8 = obj[lng] or obj[obj.default]
@@ -127,6 +110,7 @@ local function printBattery()
             lcd.drawText((36 - lcd.getTextWidth(FONT_NORMAL,string.format("%.0f%s",tagCellsDsp,"S")))/2,49,string.format("%.0f%s",tagCellsDsp,"S"),FONT_NORMAL)
         end
     end
+    collectgarbage()
 end
 ----------------------------------------------------------------------
 -- Store settings when changed by user
@@ -331,7 +315,7 @@ local function battId14Changed(value)
     table.insert (battIds, 14, value)
     system.pSave("battIds",battIds)
     system.registerTelemetry(1,trans8.telLabel,2,printBattery)
-end
+    end
 
 local function battId15Changed(value)
     table.remove (battIds, 15)
@@ -738,6 +722,7 @@ local function initForm(subform)
             end
         end
     end
+    collectgarbage()
 end
 ----------------------------------------------------------------------
 -- Re-init correct form if navigation buttons are pressed
@@ -771,6 +756,7 @@ local function writeLog()
         io.close(writeLog)
     end
     system.messageBox(trans8.logWrite, 5)
+    collectgarbage()
 end
 ----------------------------------------------------------------------
 local function loop()
@@ -976,6 +962,7 @@ local function loop()
         system.playNumber(percVal, 0, "%", trans8.annCap)
         annTime = rfidTime + 10
     end
+    collectgarbage()
 end
 ----------------------------------------------------------------------
 -- Application initialization
@@ -997,9 +984,7 @@ local function init()
     alarmVoice = system.pLoad("alarmVoice","...")
     alarmVoiceVolt = system.pLoad("alarmVoiceVolt","...")
     annSw = system.pLoad("annSw")
-    --rptAlm = system.pLoad("rptAlm",false)
     rptAlmSt = system.pLoad("rptAlmSt", 0)
-    --rptAlmVolt = system.pLoad("rptAlmVolt",false)
     rptAlmVoltSt = system.pLoad("rptAlmVoltSt", 0)
     if(rptAlmSt == 1) then
         rptAlm = true
@@ -1015,7 +1000,9 @@ local function init()
     battNames = system.pLoad("battNames",{"","","","","","","","","","","","","","",""})
     system.registerForm(1,MENU_APPS,trans8.appName,initForm,keyPressed)
     system.registerTelemetry(1,"RFID-Battery",2,printBattery)
+    collectgarbage()
 end
 ----------------------------------------------------------------------
 setLanguage()
+collectgarbage()
 return {init=init, loop=loop, author="RC-Thoughts", version=rfidVersion, name=trans8.appName}
