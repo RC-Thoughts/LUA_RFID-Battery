@@ -24,7 +24,7 @@
 collectgarbage()
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion = "2.0"
+local rfidVersion = "2.1"
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm, annGo, annSw

@@ -22,7 +22,7 @@
 collectgarbage()
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion, tCurRFID, tStrRFID = "2.0", 0, 0
+local rfidVersion, tCurRFID, tStrRFID = "2.1", 0, 0
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local capaAlarm, capaAlarmTr, alarmVoice, vPlayed, tagID
 local rfidTime, annGo, annSw, tagCapa, alarm1Tr

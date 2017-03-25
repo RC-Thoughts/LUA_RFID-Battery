@@ -29,5 +29,20 @@
 	"selAudio":"Audiofile",
 	"annSw":"Annuncio Interruttore",
 	"annCap":"Capacita"
+  },
+  "de":{
+	"appName":"RFID-Battery",
+	"telLabel":"RFID-Battery",
+	"noPack":"RFID nicht verwendet",
+	"noCurr":"Kein Strom!",
+	"emptyTag":"Leer oder kein Tag!",
+	"labelCommon":"Gemeinsame Einstellungen",
+	"sensorID":"RFID ID wählen",
+	"sensorMah":"mAh Sensor",
+	"labelAlarm":"Alarm Einstellungen Kapazität",
+	"AlmVal":"Alarm Wert (%)",
+	"selAudio":"Audiodatei",
+	"annSw":"Switch Ansage",
+	"annCap":"Kapazität"
   }
  }
