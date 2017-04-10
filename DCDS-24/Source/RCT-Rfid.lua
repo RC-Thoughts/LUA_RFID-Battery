@@ -24,7 +24,7 @@
 collectgarbage()
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion = "2.1"
+local rfidVersion = "2.2"
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm, annGo, annSw
@@ -844,12 +844,12 @@ local function loop()
                             if(tStrRFID <= tCurRFID and tSetAlm == 1) then
                                 if(vPlayed == 0 or vPlayed == nil and alarmVoice ~= "...") then
                                     if (rptAlm) then
-                                        system.playFile(alarmVoice,AUDIO_AUDIO_QUEUE)
-                                        system.playFile(alarmVoice,AUDIO_AUDIO_QUEUE)
-                                        system.playFile(alarmVoice,AUDIO_AUDIO_QUEUE)
+                                        system.playFile(alarmVoice,AUDIO_QUEUE)
+                                        system.playFile(alarmVoice,AUDIO_QUEUE)
+                                        system.playFile(alarmVoice,AUDIO_QUEUE)
                                         vPlayed = 1
                                         else
-                                        system.playFile(alarmVoice,AUDIO_AUDIO_QUEUE)
+                                        system.playFile(alarmVoice,AUDIO_QUEUE)
                                         vPlayed = 1
                                     end
                                 end
@@ -904,13 +904,13 @@ local function loop()
                             if(tVoltStrRFID >= tCurVoltRFID and tSetAlmVolt == 1) then
                                 if(vVoltPlayed == 0 or vVoltPlayed == nil and alarmVoiceVolt ~= "...") then
                                     if (rptAlmVolt) then
-                                        system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
-                                        system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
-                                        system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
+                                        system.playFile(alarmVoiceVolt,AUDIO_QUEUE)
+                                        system.playFile(alarmVoiceVolt,AUDIO_QUEUE)
+                                        system.playFile(alarmVoiceVolt,AUDIO_QUEUE)
                                         vVoltPlayed = 1
                                         system.messageBox(trans8.lowFlightpack, 10)
                                         else
-                                        system.playFile(alarmVoiceVolt,AUDIO_AUDIO_QUEUE)
+                                        system.playFile(alarmVoiceVolt,AUDIO_QUEUE)
                                         vVoltPlayed = 1
                                         system.messageBox(trans8.lowFlightpack, 10)
                                     end

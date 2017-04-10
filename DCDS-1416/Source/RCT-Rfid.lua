@@ -22,7 +22,7 @@
 collectgarbage()
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion, tCurRFID, tStrRFID = "2.1", 0, 0
+local rfidVersion, tCurRFID, tStrRFID = "2.2", 0, 0
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local capaAlarm, capaAlarmTr, alarmVoice, vPlayed, tagID
 local rfidTime, annGo, annSw, tagCapa, alarm1Tr
@@ -225,7 +225,7 @@ local function loop()
                         if (resRFID <= capaAlarm) then
                             if (tStrRFID <= tCurRFID and tSetAlm == 1) then
                                 if (vPlayed == 0 or vPlayed == nil and alarmVoice ~= "...") then
-                                    system.playFile(alarmVoice, AUDIO_AUDIO_QUEUE)
+                                    system.playFile(alarmVoice, AUDIO_QUEUE)
                                     vPlayed = 1
                                 end
                             end
