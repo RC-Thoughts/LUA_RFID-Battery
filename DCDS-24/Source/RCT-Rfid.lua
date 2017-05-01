@@ -24,7 +24,7 @@
 collectgarbage()
 ----------------------------------------------------------------------
 -- Locals for the application
-local rfidVersion = "2.3"
+local rfidVersion = "2.4"
 local rfidId, rfidParam, rfidSens, mahId, mahParam, mahSens
 local tagId, tagCapa, tagCount, tagCells, rfidTime, modName
 local voltId, voltParam, voltSens, voltAlarm, annGo, annSw
@@ -958,7 +958,7 @@ local function loop()
         battLog = "-"
         lowDisp = false
     end
-    if(tagValid == 1 and annGo == 1 and percVal ~= "-" and annTime < rfidTime) then
+    if(annGo == 1 and resRFID >= 0 and resRFID <= 100 and annTime < rfidTime) then
         system.playNumber(percVal, 0, "%", trans8.annCap)
         annTime = rfidTime + 10
     end
