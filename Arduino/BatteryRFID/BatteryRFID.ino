@@ -1,6 +1,6 @@
 /*
    --------------------------------------------------------
-				Jeti RFID-Sensor v.2.2
+				Jeti RFID-Sensor v.2.3
    --------------------------------------------------------
 
     Tero Salminen RC-Thoughts.com 2016 www.rc-thoughts.com
@@ -37,7 +37,7 @@
    --------------------------------------------------------
 */
 
-String sensVersion = "v.2.2";
+String sensVersion = "v.2.3";
 
 #include <EEPROM.h>
 #include <SPI.h>
@@ -73,6 +73,7 @@ unsigned int wCapacity;
 unsigned int wCycles;
 unsigned int wCells;
 unsigned int wCcount;
+unsigned int disableCycle;
 String uName = "N/A";
 int uLoopCount = 0;
 
@@ -219,7 +220,7 @@ unsigned char DisplayFrame()
 
 uint8_t frame[10];
 short value = 27;
-#define MAX_SCREEN 9     //Jetibox screens
+#define MAX_SCREEN 10     //Jetibox screens
 #define MAX_CONFIG 1     //Jetibox configurations
 #define COND_LES_EQUAL 1
 #define COND_MORE_EQUAL 2
@@ -266,6 +267,7 @@ void setup()
   }
   while (sensorFrameName != 0);
   digitalWrite(13, LOW);
+
   uBatteryID = 0;
   uCapacity = 0;
   uCycles = 0;
@@ -275,6 +277,7 @@ void setup()
   wCapacity = 0;
   wCycles = 0;
   wCells = 0;
+  disableCycle = 0;
 }
 
 int block = 60;
@@ -384,6 +387,19 @@ void process_screens()
       }
     case 7 : {
         msg_line1[0] = 0; msg_line2[0] = 0;
+        strcat_P((char*)&msg_line1, (prog_char*)F("AutoCycles: "));       
+        if (disableCycle == 0) {
+            strcat_P((char*)&msg_line1, (prog_char*)F("ON"));
+        }
+        if (disableCycle == 1) {
+          strcat_P((char*)&msg_line1, (prog_char*)F("OFF"));
+        }   
+        strcat_P((char*)&msg_line2, (prog_char*)F("Set Up+Dn Next>"));
+        JB.JetiBox((char*)&msg_line1, (char*)&msg_line2);
+        break;
+      }
+    case 8 : {
+        msg_line1[0] = 0; msg_line2[0] = 0;
         strcat_P((char*)&msg_line1, (prog_char*)F("Save: Up and Dn"));
         strcat_P((char*)&msg_line2, (prog_char*)F("Back: <"));
         JB.JetiBox((char*)&msg_line1, (char*)&msg_line2);
@@ -424,6 +440,7 @@ void loop()
       uCycles = 0;
       uCells = 0;
       uCcount = 0;
+      disableCycle = 0;
     }
   }
 
@@ -440,6 +457,7 @@ void loop()
       uCycles = 0;
       uCells = 0;
       uCcount = 0;
+      disableCycle = 0;
     }
   }
   
@@ -479,7 +497,7 @@ void loop()
           if (current_screen  != MAX_SCREEN)
           {
             current_screen++;
-            if (current_screen == 8) current_screen = 0;
+            if (current_screen == 9) current_screen = 0;
           }
           break;
         case 112 : // LEFT
@@ -513,6 +531,14 @@ void loop()
             wCells++;
             current_screen = 6;
           }
+          if (current_screen == 7) {
+            if(disableCycle == 0) {
+                disableCycle = 1;
+            } else {
+                disableCycle = 0;
+            }
+            current_screen = 7;
+          }
           break;
         case 176 : // DOWN
           if (current_screen == 2) {
@@ -535,6 +561,14 @@ void loop()
             wCells = (wCells + 10);
             current_screen = 6;
           }
+          if (current_screen == 7) {
+            if(disableCycle == 0) {
+                disableCycle = 1;
+            } else {
+                disableCycle = 0;
+            }
+            current_screen = 7;
+          }
           break;
         case 144 : // UP+DOWN
           {
@@ -542,7 +576,7 @@ void loop()
               wCapacity = (wCapacity + 50);
               current_screen = 3;
             }
-            if (current_screen == 7) {
+            if (current_screen == 8) {
               current_screen = 99;
               if (bReadCard && rct) {
                 mfrc522.PICC_ReadCardSerial();
@@ -562,6 +596,9 @@ void loop()
                 high = (byte)(wCcount >> 8);
                 low  = (byte)wCcount;
                 blockcontent[0] = high; blockcontent[1] = low;
+                high = (byte)(disableCycle >> 8);
+                low  = (byte)disableCycle;
+                blockcontent[2] = high; blockcontent[3] = low;
                 writeBlock(block2, blockcontent);
                 tagValues = false;
                 readBlock(block, readbackblock);
@@ -571,6 +608,7 @@ void loop()
                 uCells = ((readbackblock[6] & 0xff) << 8) | readbackblock[7];
                 readBlock(block2, readbackblock);
                 uCcount = ((readbackblock[0] & 0xff) << 8) | readbackblock[1];
+                disableCycle = ((readbackblock[2] & 0xff) << 8) | readbackblock[3];
                 bReadCard = true;
                 if (! tagValues)
                 {
@@ -662,38 +700,45 @@ void loop()
   }
 
   // If we are on RC-Thoughts Tag increase cycle-count after some time
-  if ((uLoopCount == 240) && bReadCard && rct) {
-    mfrc522.PICC_ReadCardSerial();
-    Serial.println("Writing out new cycle count");
-    uCycles = uCycles + 1;
-    unsigned char high = (byte)(uBatteryID >> 8);
-    unsigned char low  = (byte)uBatteryID;
-    blockcontent[0] = high; blockcontent[1] = low;
-    high = (byte)(uCapacity >> 8);
-    low  = (byte)uCapacity ;
-    blockcontent[2] = high; blockcontent[3] = low;
-    high = (byte)(uCycles >> 8);
-    low  = (byte)uCycles;
-    blockcontent[4] = high; blockcontent[5] = low;
-    high = (byte)(uCells >> 8);
-    low  = (byte)uCells;
-    blockcontent[6] = high; blockcontent[7] = low;
-    writeBlock(block, blockcontent);
-    high = (byte)(uCcount >> 8);
-    low  = (byte)uCcount;
-    blockcontent[0] = high; blockcontent[1] = low;
-    writeBlock(block2, blockcontent);
-    Serial.println("Battery name: N/A");
-    Serial.print("ID: "); Serial.println(uBatteryID);
-    Serial.print("Capacity: "); Serial.println(uCapacity);
-    Serial.print("Cycles: "); Serial.println(uCycles);
-    Serial.print("Cells: "); Serial.println(uCells);
-    Serial.print("C-Value: "); Serial.println(uCcount);
-    Serial.println("");
-  }
+  if (disableCycle == 0) {
+    if ((uLoopCount == 240) && bReadCard && rct) {
+        mfrc522.PICC_ReadCardSerial();
+        Serial.println("Writing out new cycle count");
+        uCycles = uCycles + 1;
+        unsigned char high = (byte)(uBatteryID >> 8);
+        unsigned char low  = (byte)uBatteryID;
+        blockcontent[0] = high; blockcontent[1] = low;
+        high = (byte)(uCapacity >> 8);
+        low  = (byte)uCapacity ;
+        blockcontent[2] = high; blockcontent[3] = low;
+        high = (byte)(uCycles >> 8);
+        low  = (byte)uCycles;
+        blockcontent[4] = high; blockcontent[5] = low;
+        high = (byte)(uCells >> 8);
+        low  = (byte)uCells;
+        blockcontent[6] = high; blockcontent[7] = low;
+        writeBlock(block, blockcontent);
+        high = (byte)(uCcount >> 8);
+        low  = (byte)uCcount;
+        blockcontent[0] = high; blockcontent[1] = low;
+        writeBlock(block2, blockcontent);
+        Serial.println("Battery name: N/A");
+        Serial.print("ID: "); Serial.println(uBatteryID);
+        Serial.print("Capacity: "); Serial.println(uCapacity);
+        Serial.print("Cycles: "); Serial.println(uCycles);
+        Serial.print("Cells: "); Serial.println(uCells);
+        Serial.print("C-Value: "); Serial.println(uCcount);
+        if(disableCycle == 0) {
+            Serial.println("AutoCycle: ON");
+            } else {
+            Serial.println("AutoCycle: OFF");
+        }
+        Serial.println("");
+    }
 
-  if ((uLoopCount < 241) && bReadCard && rct) {
-    uLoopCount++;
+    if ((uLoopCount < 241) && bReadCard && rct) {
+        uLoopCount++;
+    }
   }
 
   // RC-Thoughts Tag Process START
@@ -705,6 +750,10 @@ void loop()
     uCells = ((readbackblock[6] & 0xff) << 8) | readbackblock[7];
     readBlock(block2, readbackblock);
     uCcount = ((readbackblock[0] & 0xff) << 8) | readbackblock[1];
+    disableCycle = ((readbackblock[2] & 0xff) << 8) | readbackblock[3];
+    if(disableCycle < 0 or disableCycle > 1) {
+        disableCycle = 0;
+        }
     Serial.println("RC-Thoughts Info");
     Serial.println("Battery name: N/A");
     Serial.print("ID: "); Serial.println(uBatteryID);
@@ -712,6 +761,7 @@ void loop()
     Serial.print("Cycles: "); Serial.println(uCycles);
     Serial.print("Cells: "); Serial.println(uCells);
     Serial.print("C-Value: "); Serial.println(uCcount);
+    Serial.print("Autocycle: "); Serial.println(disableCycle);
     Serial.println("");
     bReadCard = true;
 
