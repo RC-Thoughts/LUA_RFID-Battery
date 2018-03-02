@@ -721,6 +721,9 @@ void loop()
         high = (byte)(uCcount >> 8);
         low  = (byte)uCcount;
         blockcontent[0] = high; blockcontent[1] = low;
+        high = (byte)(disableCycle >> 8);
+        low  = (byte)disableCycle;
+        blockcontent[2] = high; blockcontent[3] = low;
         writeBlock(block2, blockcontent);
         Serial.println("Battery name: N/A");
         Serial.print("ID: "); Serial.println(uBatteryID);
