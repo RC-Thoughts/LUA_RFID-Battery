@@ -42,7 +42,7 @@ local sensorPalist = {"..."}
 -- Read translations
 local function setLanguage()
     local lng=system.getLocale()
-    local file = io.readall("Apps/Lang/RCT-Rfid.jsn")
+    local file = io.readall("Apps/Lang/RCT-Rfi2.jsn")
     local obj = json.decode(file)
     if(obj) then
         trans8 = obj[lng] or obj[obj.default]
